@@ -1,0 +1,89 @@
+/* Sign-in Section */
+.section-content {
+  padding: 2rem 0;
+  min-height: 84vh;
+}
+
+/* Center the card and adjust its width */
+.card {
+  max-width: 380px;
+  margin-top: 20px;
+}
+
+/* Card title styling */
+.card-title {
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+  font-size: 1.5rem;
+}
+
+/* Button styling for social sign-ins */
+.btn-facebook {
+  /* background-color: #3b5998; */
+  color: black;
+  border-radius: 5px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-google {
+  /* background-color: #db4a39; */
+  color: black;
+  border-radius: 5px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btnLogin:hover {
+  background-color: rgb(100, 250, 250);
+  color: gray;
+  border-color: aquamarine;
+}
+/* Button icon alignment */
+.btn i {
+  margin-right: 0.5rem;
+}
+
+/* Input fields styling */
+.form-control {
+  height: 45px;
+  border-radius: 5px;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* Remember me checkbox */
+.custom-checkbox .custom-control-input:checked ~ .custom-control-label::before {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.custom-checkbox .custom-control-label::before {
+  border-radius: 5px;
+  height: 20px;
+  width: 20px;
+  margin-right: 0.5rem;
+}
+
+/* Login button styling */
+.btn-block {
+  width: 100%;
+  height: 45px;
+  border-radius: 5px;
+}
+
+/* Additional text styling */
+.text-center {
+  text-align: center;
+}
+
+.float-right {
+  float: right;
+}
+
+.float-left {
+  float: left;
+}

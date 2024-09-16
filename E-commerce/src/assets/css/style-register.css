@@ -1,0 +1,90 @@
+.card {
+  max-width: 520px;
+  margin: 40px auto;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.form-control {
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  font-size: 14px;
+}
+
+.form-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.form-group {
+  margin-bottom: 15px;
+  width: 100%;
+}
+
+.col {
+  flex: 1;
+  margin-right: 10px;
+}
+
+.col:last-child {
+  margin-right: 0;
+}
+
+.custom-control-input:checked ~ .custom-control-label::before {
+  background-color: #ff6600;
+  border-color: #ff6600;
+}
+
+.custom-control-label {
+  font-size: 14px;
+  font-weight: 500;
+  margin-left: 10px;
+}
+
+.custom-checkbox .custom-control-label {
+  margin-left: 0;
+}
+
+.btn-primary {
+  background-color: #ff6600;
+  border-color: #ff6600;
+  font-size: 16px;
+  padding: 10px;
+  border-radius: 5px;
+  font-weight: 700;
+  width: 100%;
+}
+
+.btn-primary:hover {
+  background-color: #e65c00;
+  border-color: #e65c00;
+}
+
+.text-muted {
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+.text-center {
+  font-size: 14px;
+  margin-top: 20px;
+}
+
+.text-center a {
+  color: #ff6600;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.text-center a:hover {
+  text-decoration: underline;
+}

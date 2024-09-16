@@ -1,0 +1,14 @@
+.filter ul li a{
+    color: grey;
+}
+.filter ul li a:hover{
+    color: black;
+}
+.filter ul li{
+    padding: 5px;
+    font-size: 18px;
+}
+
+
+
+
