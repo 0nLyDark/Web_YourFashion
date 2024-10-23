@@ -7,14 +7,18 @@ import com.dangphuoctai.backend_yourFashion.payloads.OrderResponse;
 
 public interface OrderService {
 
-    OrderDTO placeOrder(String emailId, Long cartId, String paymentMethod,OrderDTO orderDTO);
+    OrderDTO placeOrder(String emailId, Long cartId, String paymentMethod, OrderDTO orderDTO);
 
-    OrderDTO getOrder(String emailId, Long orderId);
+    OrderDTO getOrder(String emailId, Long orderId, String emailCheck);
 
-    List<OrderDTO> getOrdersByUser(String emailId);
+    List<OrderDTO> getOrdersByUser(String emailId, Integer pageNumber, Integer pageSize, String sortBy,
+            String sortOrder);
+
+    OrderResponse getAllOrdersByStoreEmail(String email, Integer pageNumber, Integer pageSize, String sortBy,
+            String sortOrder);
 
     OrderResponse getAllOrders(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder);
 
-    OrderDTO updateOrder(String emailId, Long orderId, String orderStatus);
+    OrderDTO updateOrder(String emailId, Long orderId, String orderStatus, String emailCheck);
 
 }

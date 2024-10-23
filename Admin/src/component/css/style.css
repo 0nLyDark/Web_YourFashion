@@ -1,0 +1,13 @@
+.show-store {
+  width: 100%;
+  max-width: 800px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+}
+.show-store .box {
+  margin-top: 10px;
+  padding: 5px;
+  width: 50%;
+}

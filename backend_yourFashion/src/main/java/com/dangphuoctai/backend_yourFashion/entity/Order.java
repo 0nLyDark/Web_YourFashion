@@ -41,7 +41,7 @@ public class Order {
     private String deliveryName;
 
     @Column(nullable = false)
-    @Size(min=10, max = 10, message = "Delivery phone must be exactly 10 characters")
+    @Size(min = 10, max = 10, message = "Delivery phone must be exactly 10 characters")
     private String deliveryPhone;
 
     @OneToMany(mappedBy = "order", cascade = { CascadeType.PERSIST, CascadeType.MERGE })
@@ -50,6 +50,10 @@ public class Order {
     @ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JoinColumn(name = "address_id") // Cột chứa khóa ngoại tới Address
     private Address address;
+
+    @ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    @JoinColumn(name = "store_id")
+    private Store store;
 
     private LocalDate orderDate;
 

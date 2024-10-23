@@ -44,11 +44,10 @@ import PDFButton from '../PDFButton';
     export const CartShow = () => {
         const location = useLocation();
         const queryParams = new URLSearchParams(location.search);
-        const emailParam = queryParams.get('email');
         const notify = useNotify();
         const refresh = useRefresh();
         const redirect = useRedirect();
-        
+        const emailParam = queryParams.get("email");
         const onError = (error: { message: any; }) => {
             notify(`Could not load cart: ${error.message}` , { type: 'error' });
             redirect('/carts');
@@ -71,7 +70,7 @@ import PDFButton from '../PDFButton';
                     <NumberField source="totalPrice" label="Total Price"  />
                     <ArrayField source="cartItems" label="Cart Items">
                         <Datagrid rowClick={false}>
-                            <TextField source="product.productId" label="Product ID" />
+                            <TextField source="product.id" label="Product ID" />
                             <TextField source="product.productName" label="Product Name" />
                             <ImageField source="product.image" label="Image" />
                             {/* <TextField source="product.description" label="Description" /> */}

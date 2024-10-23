@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import com.dangphuoctai.backend_yourFashion.entity.Category;
 import com.dangphuoctai.backend_yourFashion.entity.Product;
+import com.dangphuoctai.backend_yourFashion.exceptions.APIException;
 import com.dangphuoctai.backend_yourFashion.exceptions.ResourceNotFoundException;
 import com.dangphuoctai.backend_yourFashion.payloads.CategoryDTO;
 import com.dangphuoctai.backend_yourFashion.payloads.CategoryResponse;
@@ -40,10 +41,9 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryDTO createCategory(Category category) {
         Category savedCategory = categoryRepo.findByCategoryName(category.getCategoryName());
 
-        // if (savedCategory != null) {
-        //     throw new APIException("Category with the name '" + category.getCategoryName() + "' already exists !!! ");
-
-        // }
+        if (savedCategory != null) {
+            throw new APIException("Category with the name '" + category.getCategoryName() + "' already exists !!! ");
+        }
 
         savedCategory = categoryRepo.save(category);
 
@@ -52,22 +52,23 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public CategoryResponse getCategories(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder,String type) {
+    public CategoryResponse getCategories(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder,
+            String type) {
         Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
         Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
 
-        Page<Category> pageCategories ;
-        if("parent".equals(type)){
+        Page<Category> pageCategories;
+        if ("parent".equals(type)) {
             pageCategories = categoryRepo.findByCategoryParentNull(pageDetails);
-        }else{
+        } else {
             pageCategories = categoryRepo.findAll(pageDetails);
         }
 
         List<Category> categories = pageCategories.getContent();
 
         // if (categories.size() == 0) {
-        //     throw new APIException("No category is created till now");
+        // throw new APIException("No category is created till now");
 
         // }
 

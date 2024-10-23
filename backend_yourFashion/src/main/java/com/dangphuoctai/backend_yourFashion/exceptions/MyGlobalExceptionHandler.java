@@ -6,6 +6,7 @@ import java.util.Map;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -85,5 +86,12 @@ public class MyGlobalExceptionHandler {
         APIResponse res = new APIResponse(e.getMessage(), false);
 
         return new ResponseEntity<APIResponse>(res, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<APIResponse> myResponseStatusException(AccessDeniedException e) {
+        APIResponse res = new APIResponse(e.getMessage(), false);
+
+        return new ResponseEntity<APIResponse>(res, HttpStatus.FORBIDDEN);
     }
 }

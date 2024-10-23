@@ -7,6 +7,7 @@ import ProductItem from "./productItem";
 import { useCart } from "../../context/CartContext";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import ProductStore from "./productStore";
 function ProductDetail() {
   const { addToCart } = useCart();
   const { id } = useParams();
@@ -70,17 +71,20 @@ function ProductDetail() {
     const authToken = localStorage.getItem("authToken");
     if (authToken) {
       addToCart(product.productId, quantity);
-    }else{
-      toast("Hãy đăng nhập để liên kết với giỏ hảng của bạn",{
-        position:"top-center",
-        autoClose:2000,
-      })
+    } else {
+      toast("Hãy đăng nhập để liên kết với giỏ hảng của bạn", {
+        position: "top-center",
+        autoClose: 2000,
+      });
     }
   };
   return (
-    <section className="content">
+    <section
+      className="content"
+      style={{ backgroundColor: "rgb(245, 245, 245)" }}
+    >
       <div className="container p-4">
-        <div className="row product-detail">
+        <div className="row product-detail bg-white">
           <div className="col-md-6 col-12 ">
             <img
               src={`${apiURL}products/image/${product ? product.image : ""}`}
@@ -195,15 +199,17 @@ function ProductDetail() {
               <h3 className="fs-6">description</h3>
             </div> */}
           </div>
-          <div className="col-12 mt-4">
-            <h4>Mô tả:</h4>
-            <div style={{ whiteSpace: "pre-wrap" }}>
-              {product && product.description}
-            </div>
+        </div>
+        <div className="bg-white p-4 my-3 row">
+          {product && <ProductStore store={product.store} />}
+        </div>
+        <div className="bg-white my-3 p-4 row">
+          <h4>Mô tả:</h4>
+          <div style={{ whiteSpace: "pre-wrap" }}>
+            {product && product.description}
           </div>
         </div>
-        <hr />
-        <nav>
+        {/* <nav>
           <div
             className="nav nav-tabs d-flex justify-content-center"
             id="nav-tab"
@@ -246,8 +252,8 @@ function ProductDetail() {
               Contact
             </button>
           </div>
-        </nav>
-        <div className="tab-content" id="nav-tabContent">
+        </nav> */}
+        <div className="tab-content bg-white row" id="nav-tabContent">
           <div
             className="tab-pane fade show active"
             id="nav-home"

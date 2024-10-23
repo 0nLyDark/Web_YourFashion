@@ -71,14 +71,13 @@ function Header() {
     }
   };
   const { cartLength } = useCart();
-  
 
   return (
     <section className="header" ref={headerRef}>
       <div className="header-top container-fluid md-0 " ref={headerTopRef}>
         <div className="row">
           <div className="col-4 py-1">
-            <p className="">Shop Online</p>
+            <p className="">Shop Online  /<Link to={'/Shop/create'} className="mx-2" style={{ color:"white" }}>Kênh người bán</Link></p>
           </div>
           <div className="col-8 py-1 text-end">
             <p className="">Mua hàng Online: 0378746355</p>
@@ -90,9 +89,9 @@ function Header() {
           <div className="row">
             <div className=" col-md-3 col-6">
               <div className="logo">
-                <a className="navbar-brand" href="{{ route('site.home') }}">
+                <Link className="navbar-brand" to={''} >
                   <img src={require("../assets/image/logo.png")} alt="aaaa" />
-                </a>
+                </Link>
               </div>
             </div>
             <div className="col-xl-6 col-lg-7 d-none d-lg-flex menu">
@@ -123,15 +122,16 @@ function Header() {
                   <div className="account-customer-icon">
                     <a>
                       <i className="fa-light fa-circle-user "></i>
-                      <span>
-                        Tài Khoản
-                      </span>
+                      <span>Tài Khoản</span>
                     </a>
 
                     <div className="account-login-register">
                       {localStorage.getItem("authToken") &&
                       localStorage.getItem("email") ? (
-                        <Link to="/Logout">Đăng xuất</Link>
+                        <>
+                          <Link to="/Profile">Quản lý tài khoản</Link>
+                          <Link to="/Logout">Đăng xuất</Link>
+                        </>
                       ) : (
                         <>
                           <Link to="/Login">Đăng nhập</Link>

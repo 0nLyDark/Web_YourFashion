@@ -7,6 +7,9 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,6 +34,7 @@ public class CartController {
     @PostMapping("/public/carts/{cartId}/products/{productId}/quantity/{quantity}")
     public ResponseEntity<CartDTO> addProductToCart(@PathVariable Long cartId, @PathVariable Long productId,
             @PathVariable Integer quantity) {
+
         CartDTO cartDTO = cartService.addProductToCart(cartId, productId, quantity);
 
         return new ResponseEntity<CartDTO>(cartDTO, HttpStatus.CREATED);
@@ -49,6 +53,15 @@ public class CartController {
 
     @GetMapping("/public/users/{emailId}/carts/{cartId}")
     public ResponseEntity<CartDTO> getCartById(@PathVariable String emailId, @PathVariable Long cartId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentEmail = authentication.getName();
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(ga -> ga.getAuthority().equals("ADMIN"));
+
+        // Nếu không phải admin, chỉ cho phép người dùng truy cập thông tin của họ
+        if (!isAdmin && !emailId.equals(currentEmail)) {
+            throw new AccessDeniedException("Bạn không có quyền truy cập thông tin này.");
+        }
         CartDTO cartDTO = cartService.getCart(emailId, cartId);
 
         return new ResponseEntity<CartDTO>(cartDTO, HttpStatus.OK);

@@ -44,7 +44,8 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers(AppConstants.PUBLIC_URLS).permitAll()
-                        .requestMatchers(AppConstants.USER_URLS).hasAnyAuthority("USER", "ADMIN")
+                        .requestMatchers(AppConstants.USER_URLS).hasAnyAuthority("USER", "SELLER", "ADMIN")
+                        .requestMatchers(AppConstants.SELLER_URLS).hasAnyAuthority("SELLER", "ADMIN")
                         .requestMatchers(AppConstants.ADMIN_URLS).hasAuthority("ADMIN")
                         .anyRequest().authenticated())
                 .exceptionHandling(handling -> handling.authenticationEntryPoint(
@@ -94,4 +95,3 @@ public class SecurityConfig {
         return source;
     }
 }
-

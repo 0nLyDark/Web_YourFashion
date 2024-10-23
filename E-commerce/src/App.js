@@ -26,7 +26,7 @@ function App() {
           <div style={{ minHeight: "500px" }}>
             <Main />
           </div>
-          <Footer />
+          <Footer />  
         </BrowserRouter>
       </CartProvider>
     </PayPalScriptProvider>

@@ -10,6 +10,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,9 +43,16 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
-    @PostMapping("/admin/categories/{categoryId}/products")
-    public ResponseEntity<ProductDTO> addProduct(@Valid @RequestBody Product product, @PathVariable Long categoryId) {
-        ProductDTO savedProduct = productService.addProduct(categoryId, product);
+    @PostMapping("/seller/categories/{categoryId}/stores/email/{email}/products")
+    public ResponseEntity<ProductDTO> addProduct(@Valid @RequestBody Product product, @Valid @PathVariable String email,
+            @Valid @PathVariable Long categoryId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentEmail = authentication.getName();
+        // Chỉ cho phép người dùng truy cập thông tin của họ
+        if (!email.equals(currentEmail)) {
+            throw new AccessDeniedException("Bạn không có quyền truy cập thông tin này.");
+        }
+        ProductDTO savedProduct = productService.addProduct(categoryId, email, product);
 
         return new ResponseEntity<ProductDTO>(savedProduct, HttpStatus.CREATED);
 
@@ -61,13 +71,48 @@ public class ProductController {
             @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize,
             @RequestParam(name = "sortBy", defaultValue = AppConstants.SORT_PRODUCTS_BY, required = false) String sortBy,
             @RequestParam(name = "sortOrder", defaultValue = AppConstants.SORT_DIR, required = false) String sortOrder,
-            @RequestParam(name = "sale", defaultValue = "false" , required = false) Boolean sale) {
+            @RequestParam(name = "sale", defaultValue = "false", required = false) Boolean sale) {
 
         ProductResponse productResponse = productService.getAllProducts(
                 pageNumber == 0 ? pageNumber : pageNumber - 1,
                 pageSize,
                 "id".equals(sortBy) ? "productId" : sortBy,
-                sortOrder,sale);
+                sortOrder, sale);
+
+        return new ResponseEntity<ProductResponse>(productResponse, HttpStatus.OK);
+    }
+
+    @GetMapping("/public/stores/{storeId}/products")
+    public ResponseEntity<ProductResponse> getProductsByStore(@PathVariable Long storeId,
+            @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
+            @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize,
+            @RequestParam(name = "sortBy", defaultValue = AppConstants.SORT_PRODUCTS_BY, required = false) String sortBy,
+            @RequestParam(name = "sortOrder", defaultValue = AppConstants.SORT_DIR, required = false) String sortOrder,
+            @RequestParam(name = "sale", defaultValue = "false", required = false) Boolean sale) {
+
+        ProductResponse productResponse = productService.getProductByStore(
+                pageNumber == 0 ? pageNumber : pageNumber - 1,
+                pageSize,
+                "id".equals(sortBy) ? "productId" : sortBy,
+                sortOrder, sale, storeId);
+
+        return new ResponseEntity<ProductResponse>(productResponse, HttpStatus.OK);
+    }
+
+    @GetMapping("/public/stores/{storeId}/categories/{categoryId}/products")
+    public ResponseEntity<ProductResponse> getProductsByStoreAndStoreCategory(@PathVariable Long storeId,
+            @PathVariable Long categoryId,
+            @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
+            @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize,
+            @RequestParam(name = "sortBy", defaultValue = AppConstants.SORT_PRODUCTS_BY, required = false) String sortBy,
+            @RequestParam(name = "sortOrder", defaultValue = AppConstants.SORT_DIR, required = false) String sortOrder,
+            @RequestParam(name = "sale", defaultValue = "false", required = false) Boolean sale) {
+
+        ProductResponse productResponse = productService.getProductsByStoreAndStoreCategory(
+                pageNumber == 0 ? pageNumber : pageNumber - 1,
+                pageSize,
+                "id".equals(sortBy) ? "productId" : sortBy,
+                sortOrder, sale, storeId, categoryId);
 
         return new ResponseEntity<ProductResponse>(productResponse, HttpStatus.OK);
     }
@@ -77,14 +122,15 @@ public class ProductController {
             @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
             @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize,
             @RequestParam(name = "sortBy", defaultValue = AppConstants.SORT_PRODUCTS_BY, required = false) String sortBy,
-            @RequestParam(name = "sortOrder", defaultValue = AppConstants.SORT_DIR, required = false) String sortOrder) {
+            @RequestParam(name = "sortOrder", defaultValue = AppConstants.SORT_DIR, required = false) String sortOrder,
+            @RequestParam(name = "sale", defaultValue = "false", required = false) Boolean sale) {
 
         ProductResponse productResponse = productService.searchByCategory(
                 categoryId,
                 pageNumber == 0 ? pageNumber : pageNumber - 1,
                 pageSize,
                 "id".equals(sortBy) ? "productId" : sortBy,
-                sortOrder);
+                sortOrder, sale);
 
         return new ResponseEntity<ProductResponse>(productResponse, HttpStatus.OK);
 
@@ -96,6 +142,7 @@ public class ProductController {
             @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize,
             @RequestParam(name = "sortBy", defaultValue = AppConstants.SORT_PRODUCTS_BY, required = false) String sortBy,
             @RequestParam(name = "sortOrder", defaultValue = AppConstants.SORT_DIR, required = false) String sortOrder,
+            @RequestParam(name = "sale", defaultValue = "false", required = false) Boolean sale,
             @RequestParam(name = "categoryId", defaultValue = "0", required = false) Long categoryId) {
 
         ProductResponse productResponse = productService.searchProductByKeyword(
@@ -104,7 +151,7 @@ public class ProductController {
                 pageNumber == 0 ? pageNumber : pageNumber - 1,
                 pageSize,
                 "id".equals(sortBy) ? "productId" : sortBy,
-                sortOrder);
+                sortOrder, sale);
         return new ResponseEntity<ProductResponse>(productResponse, HttpStatus.OK);
 
     }
@@ -119,26 +166,40 @@ public class ProductController {
         return new ResponseEntity<>(new InputStreamResource(imageStream), headers, HttpStatus.OK);
     }
 
-    @PutMapping("/admin/products/{productId}")
+    @PutMapping("/seller/products/{productId}")
     public ResponseEntity<ProductDTO> updateProduct(@RequestBody Product product,
             @PathVariable Long productId) {
-        ProductDTO updatedProduct = productService.updateProduct(productId, product);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentEmail = authentication.getName();
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(ga -> ga.getAuthority().equals("ADMIN"));
+
+        ProductDTO updatedProduct = productService.updateProduct(productId, product, isAdmin ? null : currentEmail);
         return new ResponseEntity<ProductDTO>(updatedProduct, HttpStatus.OK);
 
     }
 
-    @PutMapping("/admin/products/{productId}/image")
+    @PutMapping("/seller/products/{productId}/image")
     public ResponseEntity<ProductDTO> updateProductImage(@PathVariable Long productId,
             @RequestParam("image") MultipartFile image) throws IOException {
-        ProductDTO updatedProduct = productService.updateProductImage(productId, image);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentEmail = authentication.getName();
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(ga -> ga.getAuthority().equals("ADMIN"));
+
+        ProductDTO updatedProduct = productService.updateProductImage(productId, image, isAdmin ? null : currentEmail);
 
         return new ResponseEntity<ProductDTO>(updatedProduct, HttpStatus.OK);
 
     }
 
-    @DeleteMapping("/admin/products/{productId}")
-    public ResponseEntity<String> deleteProductByCategory(@PathVariable Long productId) {
-        String status = productService.deleteProduct(productId);
+    @DeleteMapping("/seller/products/{productId}")
+    public ResponseEntity<String> deleteProductByStore(@PathVariable Long productId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentEmail = authentication.getName();
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(ga -> ga.getAuthority().equals("ADMIN"));
+        String status = productService.deleteProduct(productId, isAdmin ? null : currentEmail);
 
         return new ResponseEntity<String>(status, HttpStatus.OK);
 

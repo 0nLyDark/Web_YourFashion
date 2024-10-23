@@ -52,7 +52,10 @@ public class Address {
     @ManyToMany(mappedBy = "addresses")
     private List<User> users = new ArrayList<>();
 
-    @OneToMany(mappedBy = "address", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(mappedBy = "addresses")
+    private List<Store> stores = new ArrayList<>();
+
+    @OneToMany(mappedBy = "address", cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     private List<Order> orders = new ArrayList<>();
 
     public Address(String country, String district, String city, String pincode, String ward, String buildingName) {

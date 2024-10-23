@@ -1,0 +1,121 @@
+.modal {
+  scroll-behavior: smooth;
+  overflow: scroll;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+/* Modal content */
+.modal-content {
+  position: relative;
+  background-color: white;
+  margin: 10% auto;
+  padding: 20px;
+  width: 60%;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  margin: 0;
+}
+
+.modal-body {
+  margin-top: 20px;
+}
+
+.modal-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.modal-body table th,
+.modal-body table td {
+  padding: 10px;
+  text-align: left;
+  border: 1px solid #ddd;
+}
+
+.modal-body table th {
+  background-color: #f4f4f4;
+}
+
+/* Modal footer */
+.modal-footer {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+}
+
+.button.cancel {
+  background-color: #ccc;
+}
+
+.filter {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.filter select,
+.filter input {
+  padding: 5px;
+  width: 150px;
+}
+.from-input {
+  border-radius: 10px;
+  border: 1px solid gray;
+  outline: #007bff;
+  min-height: 30px;
+  font-size: 16px;
+}
+/* .info-shop {
+  margin: 0px 80px;
+} */
+.info-shop td {
+  padding: 20px 10px;
+}
+.info-shop input {
+  width: 350px;
+  padding: 10px;
+}
+.info-shop select {
+  border-radius: 10px;
+  border: 1px solid gray;
+  outline: #007bff;
+  width: 200px;
+  padding: 10px;
+  margin-left: 10px;
+}
+.image-preview {
+  display: inline-block;
+  cursor: pointer;
+}
+.image-preview img {
+  object-fit: cover;
+  border: 2px solid #ccc;
+}
+.image-preview input {
+  display: none;
+}

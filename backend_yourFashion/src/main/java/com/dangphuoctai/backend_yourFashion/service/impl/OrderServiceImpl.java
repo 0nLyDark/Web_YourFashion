@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import com.dangphuoctai.backend_yourFashion.entity.Address;
@@ -80,7 +81,7 @@ public class OrderServiceImpl implements OrderService {
         if (cart == null) {
             throw new ResourceNotFoundException("Cart", "cartId", cartId);
         }
-        System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaa" + orderDTOin);
+        System.out.println("orders" + orderDTOin);
         Order order = new Order();
 
         String country = orderDTOin.getAddress().getCountry();
@@ -124,7 +125,6 @@ public class OrderServiceImpl implements OrderService {
             throw new APIException("Cart is empty");
 
         }
-
         List<OrderItem> orderItems = new ArrayList<>();
 
         for (CartItem cartItem : cartItems) {
@@ -135,7 +135,6 @@ public class OrderServiceImpl implements OrderService {
             orderItem.setDiscount(cartItem.getProduct().getDiscount());
             orderItem.setOrderedProductPrice(cartItem.getProduct().getSpecialPrice());
             orderItem.setOrder(savedOrder);
-
             orderItems.add(orderItem);
         }
 
@@ -161,25 +160,34 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderDTO> getOrdersByUser(String emailId) {
-        List<Order> orders = orderRepo.findAllByEmail(emailId);
+    public List<OrderDTO> getOrdersByUser(String emailId, Integer pageNumber, Integer pageSize, String sortBy,
+            String sortOrder) {
+        Sort sortByAndOrder = sortOrder.equalsIgnoreCase("desc") ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
 
+        Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
+
+        Page<Order> pageOrders = orderRepo.findAllByEmail(emailId, pageDetails);
+
+        List<Order> orders = pageOrders.getContent();
         List<OrderDTO> orderDTOs = orders.stream().map(order -> modelMapper.map(order, OrderDTO.class))
                 .collect(Collectors.toList());
-        if (orderDTOs.size() == 0) {
-            throw new APIException("No orders placed yet by the user with email: " + emailId);
-
-        }
+        // if (orderDTOs.size() == 0) {
+        // throw new APIException("No orders placed yet by the user with email: " +
+        // emailId);
+        // }
 
         return orderDTOs;
 
     }
 
     @Override
-    public OrderDTO getOrder(String emailId, Long orderId) {
+    public OrderDTO getOrder(String emailId, Long orderId, String emailCheck) {
 
         Order order = orderRepo.findOrderByEmailAndOrderId(emailId, orderId);
-
+        if (emailCheck != null && !order.getStore().getEmail().equals(emailCheck)) {
+            throw new AccessDeniedException("Bạn không có quyền truy cập thông tin này.");
+        }
         if (order == null) {
             throw new ResourceNotFoundException("Order", "orderId", orderId);
 
@@ -187,6 +195,35 @@ public class OrderServiceImpl implements OrderService {
 
         return modelMapper.map(order, OrderDTO.class);
 
+    }
+
+    @Override
+    public OrderResponse getAllOrdersByStoreEmail(String email, Integer pageNumber, Integer pageSize, String sortBy,
+            String sortOrder) {
+        Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+        Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
+
+        Page<Order> pageOrders = orderRepo.findAllByStoreEmail(email, pageDetails);
+        List<Order> orders = pageOrders.getContent();
+
+        List<OrderDTO> orderDTOs = orders.stream().map(order -> modelMapper.map(order, OrderDTO.class))
+                .collect(Collectors.toList());
+        if (orderDTOs.size() == 0) {
+            throw new APIException("No orders placed yet by the users");
+        }
+
+        OrderResponse orderResponse = new OrderResponse();
+
+        orderResponse.setContent(orderDTOs);
+        orderResponse.setPageNumber(pageOrders.getNumber());
+        orderResponse.setPageSize(pageOrders.getSize());
+        orderResponse.setTotalElements(pageOrders.getTotalElements());
+        orderResponse.setTotalPages(pageOrders.getTotalPages());
+        orderResponse.setLastPage(pageOrders.isLast());
+
+        return orderResponse;
     }
 
     @Override
@@ -220,10 +257,12 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderDTO updateOrder(String emailId, Long orderId, String orderStatus) {
+    public OrderDTO updateOrder(String emailId, Long orderId, String orderStatus, String emailCheck) {
 
         Order order = orderRepo.findOrderByEmailAndOrderId(emailId, orderId);
-
+        if (emailCheck != null && !order.getStore().getEmail().equals(emailCheck)) {
+            throw new AccessDeniedException("Bạn không có quyền truy cập thông tin này.");
+        }
         if (order == null) {
             throw new ResourceNotFoundException("Order", "orderId", orderId);
         }

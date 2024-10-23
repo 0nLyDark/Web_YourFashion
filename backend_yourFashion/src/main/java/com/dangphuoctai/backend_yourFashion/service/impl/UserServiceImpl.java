@@ -208,14 +208,13 @@ public class UserServiceImpl implements UserService {
                 User user = userRepo.findById(userId)
                                 .orElseThrow(() -> new ResourceNotFoundException("User", "userId", userId));
 
-                String encodedPass = passwordEncoder.encode(userDTO.getPassword());
+                // String encodedPass = passwordEncoder.encode(userDTO.getPassword());
 
                 user.setFirstName(userDTO.getFirstName());
                 user.setLastName(userDTO.getLastName());
                 user.setMobileNumber(userDTO.getMobileNumber());
                 user.setEmail(userDTO.getEmail());
-                user.setPassword(encodedPass);
-                // Role roleUser = roleRepo.findById(AppConstants.USER_ID).get();
+                // user.setPassword(encodedPass);
                 Role roleAdmin = roleRepo.findById(AppConstants.ADMIN_ID).get();
                 if (userDTO.getRoles().iterator().next().getRoleId().equals(AppConstants.ADMIN_ID)) {
                         if (!user.getRoles().contains(roleAdmin)) {
@@ -239,6 +238,8 @@ public class UserServiceImpl implements UserService {
                                 address = new Address(country, district, city, pincode, ward, buildingName);
                                 address = addressRepo.save(address);
                                 user.setAddresses(List.of(address));
+                        } else {
+                                user.setAddresses(List.of(address));
                         }
                 }
 
@@ -252,6 +253,49 @@ public class UserServiceImpl implements UserService {
                 userDTO.getCart().setCartItems(cartItems);
                 userDTO.setCart(cart);
                 // userDTO.getCart().setProducts(products);
+                userDTO.setPassword("");
+
+                return userDTO;
+        }
+
+        @Override
+        public UserDTO updateUserByEmail(String email, UserDTO userDTO) {
+                User user = userRepo.findByEmail(email)
+                                .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
+
+                user.setFirstName(userDTO.getFirstName());
+                user.setLastName(userDTO.getLastName());
+                user.setMobileNumber(userDTO.getMobileNumber());
+                if (userDTO.getAddress() != null) {
+                        String country = userDTO.getAddress().getCountry();
+                        String district = userDTO.getAddress().getDistrict();
+                        String city = userDTO.getAddress().getCity();
+                        String pincode = userDTO.getAddress().getPincode();
+                        String ward = userDTO.getAddress().getWard();
+                        String buildingName = userDTO.getAddress().getBuildingName();
+
+                        Address address = addressRepo.findByCountryAndDistrictAndCityAndPincodeAndWardAndBuildingName(
+                                        country, district,
+                                        city, pincode, ward, buildingName);
+                        if (address == null) {
+                                address = new Address(country, district, city, pincode, ward, buildingName);
+                                address = addressRepo.save(address);
+                                user.setAddresses(List.of(address));
+                        } else {
+                                user.setAddresses(List.of(address));
+                        }
+                }
+
+                userDTO = modelMapper.map(user, UserDTO.class);
+                userDTO.setAddress(modelMapper.map(user.getAddresses().stream().findFirst().get(), AddressDTO.class));
+
+                CartDTO cart = modelMapper.map(user.getCart(), CartDTO.class);
+                List<CartItemDTO> cartItems = user.getCart().getCartItems().stream()
+                                .map(item -> modelMapper.map(item, CartItemDTO.class))
+                                .collect(Collectors.toList());
+                userDTO.getCart().setCartItems(cartItems);
+                userDTO.setCart(cart);
+
                 userDTO.setPassword("");
 
                 return userDTO;

@@ -87,3 +87,44 @@
 .float-left {
   float: left;
 }
+
+.logo-shop {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  /* border: 1px solid black; */
+  overflow: hidden;
+}
+.btn-shop {
+  color: black;
+  font-size: 16px;
+  border: 1px solid rgb(205, 205, 205);
+  box-sizing: border-box;
+}
+.btn-shop:hover {
+  background-color: azure;
+}
+ul.categoryShop {
+  padding-left: 0px;
+}
+ul.categoryShop li a {
+  cursor: pointer;
+
+  font-size: 14px;
+  color: grey;
+}
+
+select.sort-product {
+  outline: none;
+}
+select.sort-product {
+  width: 200px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid rgb(220, 220, 220);
+  font-size: 12px;
+}
+select.sort-product option {
+  color: grey;
+  padding: 5px;
+}

@@ -25,5 +25,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         return user.map(UserInfoConfig::new)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", username));
+                
     }
 }

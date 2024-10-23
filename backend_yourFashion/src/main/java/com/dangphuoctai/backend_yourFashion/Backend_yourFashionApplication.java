@@ -46,11 +46,15 @@ public class Backend_yourFashionApplication implements CommandLineRunner {
 			adminRole.setRoleId(AppConstants.ADMIN_ID);
 			adminRole.setRoleName("ADMIN");
 
+			Role sellerRole = new Role();
+			sellerRole.setRoleId(AppConstants.SELLER_ID);
+			sellerRole.setRoleName("SELLER");
+
 			Role userRole = new Role();
 			userRole.setRoleId(AppConstants.USER_ID);
 			userRole.setRoleName("USER");
 
-			List<Role> roles = List.of(adminRole, userRole);
+			List<Role> roles = List.of(adminRole, sellerRole, userRole);
 
 			List<Role> savedRoles = roleRepo.saveAll(roles);
 

@@ -1,5 +1,6 @@
 import axios from "axios";
 import React from "react";
+import logoVNPay from "../assets/image/logoVNPay.png";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import { GET_ID, POST_ADD } from "../api/apiService";
@@ -419,9 +420,7 @@ function CheckOut() {
               />
             </div>
             <div className="row">
-              <div className="col-md-6 col-12 my-4">
-                <button onClick={handleOrderVNPay}>VNPay</button>
-              </div>
+              <div className="col-md-6 col-12 my-4"></div>
               <div className="col-md-6 col-12 my-4 text-end">
                 <button
                   type="submit"
@@ -432,42 +431,59 @@ function CheckOut() {
                   <strong>ĐẶT HÀNG</strong>
                 </button>
               </div>
-
-              <PayPalButtons
-                style={{ color: "silver" }}
-                onClick={(data, actions) => {
-                  if (statusCheckOut.current) {
-                    return actions.resolve();
-                  } else {
-                    alert("Hãy nhập đầy đủ thông tin vận chuyển");
-                    return actions.reject();
-                  }
-                }}
-                createOrder={(data, actions) => {
-                  return actions.order.create({
-                    purchase_units: [
-                      {
-                        description: `Thanh toán đơn hàng của email: ${email}`,
-                        amount: {
-                          // currency_code:"VND",
-                          // value: 10.0,
-                          value: amount.current,
+            </div>
+            <div className="row">
+              <div className="col-md-6">
+                <button
+                  onClick={handleOrderVNPay}
+                  className="btn"
+                  style={{ border: "none" }}
+                >
+                  <img
+                    src={require("../assets/image/logoVNPay.png")}
+                    style={{ width: "150px", height: "75px" }}
+                    className="img-fluid"
+                    alt="aaaaaaaaa"
+                  />
+                </button>
+              </div>
+              <div className="col-md-6">
+                <PayPalButtons
+                  style={{ color: "silver" }}
+                  onClick={(data, actions) => {
+                    if (statusCheckOut.current) {
+                      return actions.resolve();
+                    } else {
+                      alert("Hãy nhập đầy đủ thông tin vận chuyển");
+                      return actions.reject();
+                    }
+                  }}
+                  createOrder={(data, actions) => {
+                    return actions.order.create({
+                      purchase_units: [
+                        {
+                          description: `Thanh toán đơn hàng của email: ${email}`,
+                          amount: {
+                            // currency_code:"VND",
+                            // value: 10.0,
+                            value: amount.current,
+                          },
                         },
-                      },
-                    ],
-                  });
-                }}
-                onApprove={async (data, actions) => {
-                  const order = await actions.order.capture();
-                  console.log("order", order);
-                  handleApproveRef.current(data.orderID);
-                }}
-                onCancel={() => {}}
-                onError={(error) => {
-                  console.error("Thanh toán đã xảy ra lỗi: ", error);
-                  alert("Thanh toán đã xảy ra lỗi: ", error);
-                }}
-              />
+                      ],
+                    });
+                  }}
+                  onApprove={async (data, actions) => {
+                    const order = await actions.order.capture();
+                    console.log("order", order);
+                    handleApproveRef.current(data.orderID);
+                  }}
+                  onCancel={() => {}}
+                  onError={(error) => {
+                    console.error("Thanh toán đã xảy ra lỗi: ", error);
+                    alert("Thanh toán đã xảy ra lỗi: ", error);
+                  }}
+                />
+              </div>
             </div>
             {/* @else
                         <p>Bạn đã có tài khoản? <a href="{{ route('site.customer.getlogin') }}">Đăng Nhập</a></p>

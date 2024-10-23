@@ -16,7 +16,7 @@ public class CategoryDTO {
     private String categoryName;
     private CategoryDTOChildren categoryParent;
     private List<CategoryDTOChildren> categoryChildren = new ArrayList<>();
-
+    private Boolean status;
     // private List<ProductDTO> products = new ArrayList<>();
 
 }

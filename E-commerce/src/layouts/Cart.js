@@ -168,18 +168,18 @@ function Cart() {
             <table className="table table-bordered">
               <thead>
                 <tr>
-                  <th style={{ idth: "80px" }} className="text-center">
+                  <th style={{ width: "80px" }} className="text-center">
                     Mã SP
                   </th>
-                  <th style={{ width: "150px" }}>Hình</th>
+                  <th style={{ width: "150px",textAlign:'center' }}>Hình</th>
                   <th>Tên sản phẩm</th>
-                  <th className="text-center" style={{ width: "" }}>
+                  <th className="text-center" style={{ width: "150px" }}>
                     Số lượng
                   </th>
-                  <th>Giá</th>
-                  <th>Giảm giá</th>
+                  <th style={{ minWidth: "120px" }}>Giá</th>
+                  <th style={{ width: "100px" }} >Giảm giá</th>
 
-                  <th>Thành tiền</th>
+                  <th style={{ minWidth: "120px" }}>Thành tiền</th>
                   <th style={{ width: " 50px" }}>
                     <a
                       onclick="handleDeleteAllCart()"

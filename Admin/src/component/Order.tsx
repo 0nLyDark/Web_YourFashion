@@ -43,59 +43,7 @@ export const OrderList =() =>{
         </List>
     )
 }
-// export const OrderShow = () => {
-//     const location = useLocation();
-//     const { id } = useParams<{ id: string }>(); // Assuming the Cart ID is passed in the URL
-//     const [email,setEmail] = useState("");
-//     const [order, setOrder] = useState<any>(null);
-//     const dataProvider = useDataProvider();
-//     const notify = useNotify();
-//     const redirect = useRedirect();
-//     useEffect(() => {
-//         const fetchCart = async () => {
-//             const queryParams = new URLSearchParams(location.search);
-//             const emailParam = queryParams.get('email');
-            
-//             if (emailParam && emailParam !== email) {
-//                 setEmail(emailParam);
-//                 try {
-//                     const { data } = await dataProvider.getOne('orders', { id, meta: { email: emailParam } });
-//                     setOrder(data);
-//                 } catch (error) {
-//                     console.error("Error fetching cart data:", error);
-//                     notify('Error fetching cart data');
-//                     redirect('/orders')
-//                 }
-//             }
-//         };
-//         fetchCart();
-//     }, [id,email]);
-//     return(
-//         // <Show>
-//             <SimpleShowLayout record={order} >
-//                 {/* <CustomPDFButton /> */}
-//                 <TextField source="id" label="Order ID:" />
-//                 <TextField source="email" label="Email:"  />
-//                 <DateField source="orderDate" label="Order Date:"  />
-//                 <NumberField source="totalAmount" label="Total Amount:"/>
-//                 <TextField source="orderStatus" label="Order Status:"  />
-//                 <ArrayField source="orderItems" label="Order Items:">
-//                 <ImageField source="image" label="Image"/>
-//                     <Datagrid rowClick={false}>
-//                         <TextField source="id" label="Order Item ID" />
-//                         <TextField source="productName" label="Product Name" />
-//                         <ImageField source="image" label="Image"/>
-//                         <NumberField source="quantity" label="Quantity" />
-//                         <NumberField source="discount" label="Discount" />
-//                         <NumberField source="orderedProductPrice" label="Ordered Product Price" />
-//                         <TextField source="category.name" label="Category" />
-//                     </Datagrid>
-//                 </ArrayField>
-//             </SimpleShowLayout>
-//         // </Show> 
-        
-//     );
-// }
+
 
 const CustomFrom=(data: any)=>{
     const notify = useNotify();
@@ -105,7 +53,7 @@ const CustomFrom=(data: any)=>{
     const handleUpload = async() =>{
         try {
             console.log(data.id);
-            await axios.put(`http://localhost:8080/api/admin/users/${data.email}/orders/${parseInt(data.id)}/orderStatus/${status}`,{}, {
+            await axios.put(`http://localhost:8080/api/seller/users/${data.email}/orders/${parseInt(data.id)}/orderStatus/${status}`,{}, {
                 headers: {
                 'Authorization': `Bearer ${token}` ,
                 'Content-Type': 'application/json',
@@ -181,6 +129,8 @@ export const OrderEdit = () => {
                 <DateField source="orderDate" label="Order Date:"  />
                 <NumberField source="totalAmount" label="Total Amount:"/>
                 <TextField source="payment.paymentMethod" label="Payment Method:"  />
+                <TextField source="payment.paymentCode" label="Payment Code:"  />
+
                 <TextField source="orderStatus" label="Order Status:"  />
                 <CustomFrom id={id} email={emailParam} />
                 <ArrayField source="orderItems" label="Order Items:">

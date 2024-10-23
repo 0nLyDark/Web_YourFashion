@@ -1,0 +1,28 @@
+.nav-item .nav-link {
+  margin: 5px 0px;
+  padding: 10px 25px;
+  text-align: center;
+  color: black;
+  background-color: whitesmoke;
+  border-radius: 25px;
+  font-size: 18px;
+}
+
+.nav-item .nav-link.active {
+  background-color: grey; /* Màu nền bạn muốn */
+  color: white; /* Màu chữ khi chọn */
+}
+
+.orderItem{
+  width: 100%;
+  border: 1px black solid;
+  border-radius: 25px;
+  padding: 10px 15px;
+  margin: 15px 0;
+}
+
+.orderItem .orderProduct{
+  background-color: rgb(240, 240, 240);
+  border-radius: 25px;
+  margin: 5px;
+}

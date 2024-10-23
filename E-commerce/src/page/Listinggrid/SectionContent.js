@@ -17,7 +17,7 @@ const SectionContent = () => {
   //   const [categoryId,setCategoryId] = queryParams.get("categoryId");
   const categoryId = queryParams.get("categoryId");
   const search = queryParams.get("search");
-  const [numItems, setNumItems] = useState(4);
+  const [numItems, setNumItems] = useState(8);
 
   // const numItems = 4;
 
@@ -57,10 +57,12 @@ const SectionContent = () => {
   const [sortBy, setSortBy] = useState("productId"); // Hoặc giá trị mặc định từ props nếu có
   const [sort, setSort] = useState("asc"); // Hoặc giá trị mặc định từ props nếu có
   const [grid, setGrid] = useState("4"); // Mặc định là 3 cột
+  const [sale, setSale] = useState(false);
+
   const handleGridChange = (event) => {
     let value = event.target.value;
     setGrid(value); // Cập nhật state
-    setNumItems(value);
+    setNumItems(value*2);
     // Thực hiện các thao tác khác nếu cần
   };
   const changeSort = (event) => {
@@ -94,7 +96,7 @@ const SectionContent = () => {
       sortBy: sortBy,
       sortOrder: sort,
       categoryId: categoryId !== null && categoryId !== "null" ? categoryId : 0,
-      // sale: false,
+      sale: sale,
     };
     // if(search )
     console.log("search:  ", search);
@@ -156,7 +158,7 @@ const SectionContent = () => {
         setCategories(null);
       }
     }
-  }, [categoryId, search, currentPage, sortBy, sort, numItems]);
+  }, [categoryId, search, currentPage, sortBy, sort, numItems, sale]);
   return (
     <>
       <section className="content">
@@ -188,6 +190,8 @@ const SectionContent = () => {
                 </div>
                 <div className="d-flex justify-content-between">
                   <div>
+                    <input type="checkbox" name="sale" style={{ fontSize:"120px" }} onChange={(e)=>setSale(e.target.checked) } />
+                    <label htmlFor="sale" className="me-4" >Sale </label>
                     <select onChange={changeSort}>
                       <option value="">Sắp xếp</option>
                       <option value="newest">Sản phẩm mới nhất</option>
@@ -228,29 +232,30 @@ const SectionContent = () => {
                 </div>
               </div>
               <div class="row product" style={{ minHeight: "600px" }}>
-                {!loading &&( products.length > 0 ? (
-                  grid === "3" ? (
-                    products.map((row) => {
-                      return (
-                        <div class="col-4">
-                          <ProductItem product={row} />
-                        </div>
-                      );
-                    })
+                {!loading &&
+                  (products.length > 0 ? (
+                    grid === "3" ? (
+                      products.map((row) => {
+                        return (
+                          <div class="col-4">
+                            <ProductItem product={row} />
+                          </div>
+                        );
+                      })
+                    ) : (
+                      products.map((row) => {
+                        return (
+                          <div class="col-md-3 col-6">
+                            <ProductItem product={row} />
+                          </div>
+                        );
+                      })
+                    )
                   ) : (
-                    products.map((row) => {
-                      return (
-                        <div class="col-md-3 col-6">
-                          <ProductItem product={row} />
-                        </div>
-                      );
-                    })
-                  )
-                ) : (
-                  <p className="text-center fs-3 text-info">
-                    Không có sản phẩm cần tìm !!!
-                  </p>
-                ))}
+                    <p className="text-center fs-3 text-info">
+                      Không có sản phẩm cần tìm !!!
+                    </p>
+                  ))}
                 {loading && <p>loading...</p>}
                 <div class="col-12 d-flex justify-content-center">
                   <nav>

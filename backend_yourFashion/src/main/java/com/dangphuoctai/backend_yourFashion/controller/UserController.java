@@ -3,6 +3,10 @@ package com.dangphuoctai.backend_yourFashion.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.AccessDeniedException;
+
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,22 +49,47 @@ public class UserController {
 
     @GetMapping("/public/users/email/{email}")
     public ResponseEntity<UserDTO> getUserEmail(@PathVariable String email) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentEmail = authentication.getName();
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(ga -> ga.getAuthority().equals("ADMIN"));
+
+        // Nếu không phải admin, chỉ cho phép người dùng truy cập thông tin của họ
+        if (!isAdmin && !email.equals(currentEmail)) {
+            throw new AccessDeniedException("Bạn không có quyền truy cập thông tin này.");
+        }
         UserDTO user = userService.getUserByEmail(email);
 
         return new ResponseEntity<UserDTO>(user, HttpStatus.OK);
     }
 
-    @GetMapping("/public/users/{userId}")
+    @GetMapping("/admin/users/{userId}")
     public ResponseEntity<UserDTO> getUser(@PathVariable Long userId) {
         UserDTO user = userService.getUserById(userId);
 
         return new ResponseEntity<UserDTO>(user, HttpStatus.OK);
+    }
+
+    @PutMapping("/admin/users/{userId}")
+    public ResponseEntity<UserDTO> updateUser(@RequestBody UserDTO userDTO, @PathVariable Long userId) {
+        UserDTO updatedUser = userService.updateUser(userId, userDTO);
+
+        return new ResponseEntity<UserDTO>(updatedUser, HttpStatus.OK);
 
     }
 
-    @PutMapping("/public/users/{userId}")
-    public ResponseEntity<UserDTO> updateUser(@RequestBody UserDTO userDTO, @PathVariable Long userId) {
-        UserDTO updatedUser = userService.updateUser(userId, userDTO);
+    @PutMapping("/public/users/email/{email}")
+
+    public ResponseEntity<UserDTO> updateUserByEmail(@RequestBody UserDTO userDTO, @PathVariable String email) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentEmail = authentication.getName();
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(ga -> ga.getAuthority().equals("ADMIN"));
+        // Nếu không phải admin, chỉ cho phép người dùng truy cập thông tin của họ
+        if (!isAdmin && !email.equals(currentEmail)) {
+            throw new AccessDeniedException("Bạn không có quyền truy cập thông tin này.");
+        }
+        UserDTO updatedUser = userService.updateUserByEmail(email, userDTO);
 
         return new ResponseEntity<UserDTO>(updatedUser, HttpStatus.OK);
 

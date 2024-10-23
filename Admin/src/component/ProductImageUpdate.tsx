@@ -51,7 +51,7 @@ const ProductImageUpdate = () => {
         const formData = new FormData();
         formData.append('image', file);
         try {
-            await axios.put(`http://localhost:8080/api/admin/products/${id}/image`, formData, {
+            await axios.put(`http://localhost:8080/api/seller/products/${id}/image`, formData, {
                 headers: {
                 'Authorization': `Bearer ${token}` ,
                 'Content-Type': 'multipart/form-data',

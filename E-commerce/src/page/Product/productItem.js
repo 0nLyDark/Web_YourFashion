@@ -1,6 +1,15 @@
 import React, { useEffect } from "react";
 import { formatCurrency } from "../Product/formatCurrency";
 import { Link } from "react-router-dom";
+const truncate = (str,maxLength) => {
+  // Kiểm tra nếu str là null hoặc undefined, hoặc không phải là chuỗi
+  if (typeof str !== 'string') {
+      return ''; // Trả về chuỗi rỗng hoặc xử lý phù hợp
+  }
+
+  // Thực hiện cắt ngắn chuỗi
+  return str.length > maxLength ? str.substring(0, maxLength) + '...' : str;
+};
 function ProductItem(props) {
   // useEffect(() => {
   //   console.log("props", props);
@@ -29,7 +38,7 @@ function ProductItem(props) {
       <div className="product-item-name text-center">
         {/* <a href="{{ route('site.product.detail',['slug'=>$product->slug]) }}">{{ Str::upper($product->name) }}</a> */}
         <Link to={`/ProductDetail/${props.product.productId}`}>
-          {props.product.productName}
+          {truncate(props.product.productName,45)}
         </Link>
       </div>
 

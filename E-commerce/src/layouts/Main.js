@@ -9,6 +9,8 @@ import { NotFound } from "./NotFound";
 import Cart from "./Cart";
 import UserRegister from "./UserRegister";
 import CheckOut from "./CheckOut";
+import ProfileUser from "./ProfileUser";
+import Shop from "./Shop";
 const Main = () => (
   <main>
     <Routes>
@@ -16,11 +18,14 @@ const Main = () => (
       <Route path="/Login" element={<UserLogin />} />
       <Route path="/Logout" element={<UserLogout />} />
       <Route path="/Register" element={<UserRegister />} />
+      <Route path="/Profile" element={<ProfileUser />} />
 
       <Route path="/ListingGrid" element={<Listinggrid />} />
       <Route path="/ProductDetail/:id" element={<ProductDetail />} />
       <Route path="/Cart" element={<Cart />} />
       <Route path="/CheckOut" element={<CheckOut />} />
+
+      <Route path="/Shop/:id" element={<Shop />} />
 
       <Route path="/*" element={<NotFound />} />
     </Routes>

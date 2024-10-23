@@ -93,7 +93,6 @@ public class PaymentController {
                     query.append('=');
                     query.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII.toString()));
                 } catch (Exception e) {
-                    // TODO: handle exception
                     e.printStackTrace();
                 }
 
