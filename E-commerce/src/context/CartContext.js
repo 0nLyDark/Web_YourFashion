@@ -93,9 +93,26 @@ export const CartProvider = ({ children }) => {
       autoClose: 2000,
     });
   };
+  const deleteCartAll = (productIds) => {
+    let newCartItems = cartItems.filter(
+      (cartItem) => !productIds.includes(cartItem.product.productId)
+    );
+    setCartItems(newCartItems);
+    toast("Xóa sản phẩm ra khỏi giỏ hàng thành công", {
+      position: "top-center",
+      autoClose: 2000,
+    });
+  };
   return (
     <CartContext.Provider
-      value={{ cartItems, cartLength, setCartItems, addToCart, deleteCart }}
+      value={{
+        cartItems,
+        cartLength,
+        setCartItems,
+        addToCart,
+        deleteCart,
+        deleteCartAll,
+      }}
     >
       {children}
     </CartContext.Provider>

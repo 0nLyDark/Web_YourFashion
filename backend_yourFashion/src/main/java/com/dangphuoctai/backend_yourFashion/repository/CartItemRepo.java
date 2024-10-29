@@ -1,5 +1,7 @@
 package com.dangphuoctai.backend_yourFashion.repository;
 
+import java.util.List;
+
 //
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,6 +22,8 @@ public interface CartItemRepo extends JpaRepository<CartItem, Long> {
     @Query("SELECT ci FROM CartItem ci WHERE ci.cart.id = ?1 AND ci.product.id = ?2")
     CartItem findCartItemByProductIdAndCartId(Long cartId, Long productId);
 
+    @Query("SELECT ci FROM CartItem ci WHERE ci.cart.id = ?1 AND ci.product.id IN ?2")
+    List<CartItem> findCartItemByProductIdsAndCartId(Long cartId, List<Long> productIds);
     // @Query("SELECT ci.cart FROM CartItem ci WHERE ci.cart.user.email = ?1 AND
     // ci.cart.id = ?2")
     // Cart findCartByEmailAndCartId(String email, Integer cartId);
@@ -29,9 +33,12 @@ public interface CartItemRepo extends JpaRepository<CartItem, Long> {
     // Order findOrderByEmailAndOrderId(String email, Integer orderId);
 
     @Modifying
-    @Query("DELETE FROM CartItem ci WHERE ci.cart.id = ?1 AND ci.product.id = ?2")
+    @Query("DELETE FROM CartItem ci WHERE ci.cart.id = ?2 AND ci.product.id = ?1")
     void deleteCartItemByProductIdAndCartId(Long productId, Long cartId);
 
+    @Modifying
+    @Query("DELETE FROM CartItem ci WHERE ci.cart.id = ?2 AND ci.product.id IN ?1")
+    void deleteCartItemByProductIdsAndCartId(List<Long> productIds, Long cartId);
     //
 
 }

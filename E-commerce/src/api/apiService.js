@@ -42,7 +42,9 @@ export function PUT_EDIT(endpoint, data) {
 export function DELETE_ID(endpoint) {
   return callApi(endpoint, "DELETE");
 }
-
+export function DELETE_ALL(endpoint, data) {
+  return callApi(endpoint, "DELETE", data);
+}
 export function LOGIN(body) {
   const API_URL_LOGIN = "http://localhost:8080/api/login";
   return axiosInstance

@@ -16,7 +16,13 @@ function CheckOut() {
   const email = localStorage.getItem("email");
   const cartId = localStorage.getItem("cartId");
   const { setCartItems } = useCart();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const queryParams = new URLSearchParams(location.search);
+  const proId = queryParams.get("productIds");
+  const listProduct = proId ? proId.split(",").map(Number) : [];
 
+  const [store, setStore] = useState([]);
   const [deliveryName, setDeliveryName] = useState("");
   const [deliveryPhone, setDeliveryPhone] = useState("");
 
@@ -139,19 +145,22 @@ function CheckOut() {
   const handleOrder = () => {
     if (statusCheckOut.current) {
       const data = {
-        orderId: 0,
-        deliveryName: deliveryName,
-        deliveryPhone: deliveryPhone,
-        note: note,
-        address: {
-          addressId: 0,
-          ward: ward,
-          buildingName: buildingName,
-          city: city,
-          district: district,
-          country: "Việt Nam",
-          pincode: "999999",
+        orderDTO: {
+          orderId: 0,
+          deliveryName: deliveryName,
+          deliveryPhone: deliveryPhone,
+          note: note,
+          address: {
+            addressId: 0,
+            ward: ward,
+            buildingName: buildingName,
+            city: city,
+            district: district,
+            country: "Việt Nam",
+            pincode: "999999",
+          },
         },
+        productIds: listProduct,
       };
       POST_ADD(
         `/users/${email}/carts/${cartId}/payments/Cash on Delivery/order`,
@@ -181,19 +190,22 @@ function CheckOut() {
     handleApproveRef.current = async (orderId) => {
       if (statusCheckOut.current) {
         const data = {
-          orderId: 0,
-          deliveryName: deliveryName,
-          deliveryPhone: deliveryPhone,
-          note: note,
-          address: {
-            addressId: 0,
-            ward: ward,
-            buildingName: buildingName,
-            city: city,
-            district: district,
-            country: "Việt Nam",
-            pincode: "999999",
+          orderDTO: {
+            orderId: 0,
+            deliveryName: deliveryName,
+            deliveryPhone: deliveryPhone,
+            note: note,
+            address: {
+              addressId: 0,
+              ward: ward,
+              buildingName: buildingName,
+              city: city,
+              district: district,
+              country: "Việt Nam",
+              pincode: "999999",
+            },
           },
+          productIds: listProduct,
         };
         POST_ADD(
           `/users/${email}/carts/${cartId}/payments/Payment Online/order`,
@@ -220,9 +232,6 @@ function CheckOut() {
     };
   }, [email, deliveryName, deliveryPhone, city, district, ward, buildingName]);
 
-  const location = useLocation();
-  const navigate = useNavigate();
-  const queryParams = new URLSearchParams(location.search);
   const vnpResponseCode = queryParams.get("vnp_ResponseCode");
   const vnpBankTranNo = queryParams.get("vnp_BankTranNo");
   useEffect(() => {
@@ -265,19 +274,25 @@ function CheckOut() {
   const handleOrderVNPay = () => {
     if (statusCheckOut.current) {
       const data = {
-        orderId: 0,
-        deliveryName: deliveryName,
-        deliveryPhone: deliveryPhone,
-        note: note,
-        address: {
-          addressId: 0,
-          ward: ward,
-          buildingName: buildingName,
-          city: city,
-          district: district,
-          country: "Việt Nam",
-          pincode: "999999",
+        orderDTO: {
+          orderId: 0,
+          deliveryName: deliveryName,
+          deliveryPhone: deliveryPhone,
+          note: note,
+          address: {
+            addressId: 0,
+            ward: ward,
+            buildingName: buildingName,
+            city: city,
+            district: district,
+            country: "Việt Nam",
+            pincode: "999999",
+          },
+          payment: {
+            paymentCode: vnpResponseCode,
+          },
         },
+        productIds: listProduct,
       };
       localStorage.setItem("order", JSON.stringify(data));
       axiosInstance
@@ -296,11 +311,44 @@ function CheckOut() {
     const USD = (price / 24000).toFixed(2);
     return USD;
   };
+
+  useEffect(() => {
+    let listStore = [];
+    let totalMoney = 0;
+    cartItemss.map((item) => {
+      let checkProduct = listProduct.includes(item.product.productId);
+      if (checkProduct) {
+        let check = listStore.findIndex(
+          (store) => store.id == item.product.store.id
+        );
+        if (check == -1) {
+          let store = {
+            id: item.product.store.id,
+            storeName: item.product.store.storeName,
+            total: item.quantity * item.product.specialPrice,
+          };
+          listStore.push(store);
+        } else {
+          listStore[check].total += item.quantity * item.product.specialPrice;
+        }
+        totalMoney += item.quantity * item.product.specialPrice;
+      }
+    });
+    setStore(listStore);
+    setTotalAmount(totalMoney);
+
+    console.log("aaaaaaaaa", listStore);
+    console.log("aaaaaaaaa", cartItemss);
+  }, [cartItemss]);
+
   return (
-    <section className="content">
-      <div className="container py-4">
-        <div className="row">
-          <div className="col-md-6 my-2">
+    <section
+      className="content"
+      style={{ backgroundColor: "rgba(0, 0, 0, 0.04)" }}
+    >
+      <div className="container py-4 ">
+        <div className="row bg-white p-4 mb-4" style={{ borderRadius: "55px" }}>
+          <div className="col-md-6 my-2 ">
             <h2 className="text-center mb-4">Thông tin vận chuyển</h2>
             <div className="mb-3">
               <label for="deliveryName">Họ tên người nhận:</label>
@@ -342,6 +390,78 @@ function CheckOut() {
                 />
               </div>
             </div>
+
+            <div className="row">
+              <div className="col-md-6 col-12 my-4"></div>
+              {/* <div className="col-md-6 col-12 my-4 text-end">
+                <button
+                  type="submit"
+                  onClick={handleOrder}
+                  className="btn bg-black text-white fROm-control"
+                  style={{ width: "100%", maxWidth: " 250px" }}
+                >
+                  <strong>ĐẶT HÀNG</strong>
+                </button>
+              </div> */}
+            </div>
+            <div className="row">
+              <div className="col-md-6">
+                <button
+                  onClick={handleOrderVNPay}
+                  className="btn"
+                  style={{ border: "none" }}
+                >
+                  <img
+                    src={require("../assets/image/logoVNPay.png")}
+                    style={{ width: "150px", height: "75px" }}
+                    className="img-fluid"
+                    alt="aaaaaaaaa"
+                  />
+                </button>
+              </div>
+              <div className="col-md-6">
+                <PayPalButtons
+                  style={{ color: "silver" }}
+                  onClick={(data, actions) => {
+                    if (statusCheckOut.current) {
+                      return actions.resolve();
+                    } else {
+                      alert("Hãy nhập đầy đủ thông tin vận chuyển");
+                      return actions.reject();
+                    }
+                  }}
+                  createOrder={(data, actions) => {
+                    return actions.order.create({
+                      purchase_units: [
+                        {
+                          description: `Thanh toán đơn hàng của email: ${email}`,
+                          amount: {
+                            // currency_code:"VND",
+                            // value: 10.0,
+                            value: amount.current,
+                          },
+                        },
+                      ],
+                    });
+                  }}
+                  onApprove={async (data, actions) => {
+                    const order = await actions.order.capture();
+                    console.log("order", order);
+                    handleApproveRef.current(data.orderID);
+                  }}
+                  onCancel={() => {}}
+                  onError={(error) => {
+                    console.error("Thanh toán đã xảy ra lỗi: ", error);
+                    alert("Thanh toán đã xảy ra lỗi: ", error);
+                  }}
+                />
+              </div>
+            </div>
+            {/* @else
+                        <p>Bạn đã có tài khoản? <a href="{{ route('site.customer.getlogin') }}">Đăng Nhập</a></p>
+                    @endif */}
+          </div>
+          <div className="col-md-6 my-2">
             <div className="mb-3">
               <div className="row">
                 <div className="col-md-4">
@@ -419,132 +539,86 @@ function CheckOut() {
                 }}
               />
             </div>
-            <div className="row">
-              <div className="col-md-6 col-12 my-4"></div>
-              <div className="col-md-6 col-12 my-4 text-end">
-                <button
-                  type="submit"
-                  onClick={handleOrder}
-                  className="btn bg-black text-white fROm-control"
-                  style={{ width: "100%", maxWidth: " 250px" }}
-                >
-                  <strong>ĐẶT HÀNG</strong>
-                </button>
-              </div>
-            </div>
-            <div className="row">
-              <div className="col-md-6">
-                <button
-                  onClick={handleOrderVNPay}
-                  className="btn"
-                  style={{ border: "none" }}
-                >
-                  <img
-                    src={require("../assets/image/logoVNPay.png")}
-                    style={{ width: "150px", height: "75px" }}
-                    className="img-fluid"
-                    alt="aaaaaaaaa"
-                  />
-                </button>
-              </div>
-              <div className="col-md-6">
-                <PayPalButtons
-                  style={{ color: "silver" }}
-                  onClick={(data, actions) => {
-                    if (statusCheckOut.current) {
-                      return actions.resolve();
-                    } else {
-                      alert("Hãy nhập đầy đủ thông tin vận chuyển");
-                      return actions.reject();
-                    }
-                  }}
-                  createOrder={(data, actions) => {
-                    return actions.order.create({
-                      purchase_units: [
-                        {
-                          description: `Thanh toán đơn hàng của email: ${email}`,
-                          amount: {
-                            // currency_code:"VND",
-                            // value: 10.0,
-                            value: amount.current,
-                          },
-                        },
-                      ],
-                    });
-                  }}
-                  onApprove={async (data, actions) => {
-                    const order = await actions.order.capture();
-                    console.log("order", order);
-                    handleApproveRef.current(data.orderID);
-                  }}
-                  onCancel={() => {}}
-                  onError={(error) => {
-                    console.error("Thanh toán đã xảy ra lỗi: ", error);
-                    alert("Thanh toán đã xảy ra lỗi: ", error);
-                  }}
-                />
-              </div>
-            </div>
-            {/* @else
-                        <p>Bạn đã có tài khoản? <a href="{{ route('site.customer.getlogin') }}">Đăng Nhập</a></p>
-                    @endif */}
           </div>
-          <div className="col-md-6 my-2">
-            <h2 className="text-center mb-4">Thông tin đơn hàng</h2>
-            <table className="table ">
-              <thead>
-                <tr>
-                  <th style={{ width: "150px" }} className="text-center">
-                    Hình
-                  </th>
-                  <th>Tên sản phẩm</th>
-                  {/* {{-- <th className="text-center">Số lượng</th>
-                                <th>Giá</th> --}} */}
-                  <th style={{ minWidth: "120px" }}>Thành tiền</th>
-                </tr>
-              </thead>
-              <tbody>
-                {cartItemss.map((cartItem) => (
-                  <tr>
-                    <td style={{ width: "150px" }}>
-                      <img
-                        className="img-fluid w-100"
-                        src={
-                          apiURL + `products/image/${cartItem.product.image}`
-                        }
-                        alt=""
-                      />
-                    </td>
-                    <td>
-                      <strong>{cartItem.product.productName}</strong>
-                      {/* <p style={{ marginBottom: "0px " }}>Mã sp:</p> */}
-                      <p>
-                        {formatCurrency(cartItem.product.specialPrice)} *{" "}
-                        {cartItem.quantity}
-                        <sup></sup>
-                      </p>
-                    </td>
-
-                    <td name="total">
-                      {formatCurrency(
-                        cartItem.product.specialPrice * cartItem.quantity
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot>
-                <tr>
-                  <th colspan="5" className="text-end">
-                    <span className="fs-5">
-                      Tổng tiền:{" "}
-                      <span id="totalMoney">{formatCurrency(totalAmount)}</span>
-                      <sup>đ</sup>
-                    </span>
-                  </th>
-                </tr>
-              </tfoot>
-            </table>
+        </div>
+        <div className="">
+          <div className="order-header">
+            <div>Sản phẩm</div>
+            <div className="text-end">Đơn giá</div>
+            <div className="text-end">Số lượng</div>
+            <div className="text-end">Thành tiền</div>
+          </div>
+          {store.map((item) => (
+            <div className="order-store" key={"store" + item.id}>
+              <div className="store-name">
+                <div>{item.storeName}</div>
+              </div>
+              {cartItemss.map(
+                (row) =>
+                  row.product.store.id === item.id &&
+                  listProduct.includes(row.product.productId) && (
+                    <div className="order-item" key={row.product.productId}>
+                      <div className="product-details">
+                        <div>
+                          <Link to={`/productDetail/${row.product.productId}`}>
+                            <img
+                              src={`${apiURL}products/image/${row.product.image}`}
+                              alt={row.product.image}
+                            />
+                          </Link>
+                        </div>
+                        <div className="ps-2">
+                          <div class="title">{row.product.productName}</div>
+                          <div class="description">
+                            Tồn kho: {row.product.quantity}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-end">
+                        {formatCurrency(row.product.specialPrice)}
+                      </div>
+                      <div className="text-end">{row.quantity}</div>
+                      <div className="text-end">
+                        {formatCurrency(
+                          row.quantity * row.product.specialPrice
+                        )}
+                      </div>
+                    </div>
+                  )
+              )}
+              <div className="store-total">
+                Tổng số tiền:<span>{formatCurrency(item.total)}</span>
+              </div>
+            </div>
+          ))}
+          <div className="order-footer">
+            <div></div>
+            <div>
+              <div className="order-total">
+                <div>
+                  Tổng tiền hàng
+                  <span className="text-black">
+                    {formatCurrency(totalAmount)}
+                  </span>
+                </div>
+                <div>
+                  Tổng thanh toán
+                  <span className="fs-4">{formatCurrency(totalAmount)}</span>
+                </div>
+              </div>
+              <div>
+                <div className="text-end py-4">
+                  <button
+                    type="submit"
+                    onClick={handleOrder}
+                    className="btn bg-secondary text-white from-control"
+                    style={{ width: "100%", maxWidth: " 200px" }}
+                  >
+                    <strong>Đặt hàng</strong>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

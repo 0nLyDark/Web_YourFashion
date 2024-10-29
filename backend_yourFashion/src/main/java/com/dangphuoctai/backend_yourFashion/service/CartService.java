@@ -18,4 +18,6 @@ public interface CartService {
 
     String deleteProductFromCart(Long cartId, Long productId);
 
+    String deleteProductFromCartAll(Long cartId, List<Long> productIds);
+
 }

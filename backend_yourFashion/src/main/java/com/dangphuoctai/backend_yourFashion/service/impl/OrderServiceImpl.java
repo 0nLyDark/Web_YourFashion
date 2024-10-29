@@ -21,6 +21,7 @@ import com.dangphuoctai.backend_yourFashion.entity.Order;
 import com.dangphuoctai.backend_yourFashion.entity.OrderItem;
 import com.dangphuoctai.backend_yourFashion.entity.Payment;
 import com.dangphuoctai.backend_yourFashion.entity.Product;
+import com.dangphuoctai.backend_yourFashion.entity.Store;
 import com.dangphuoctai.backend_yourFashion.exceptions.APIException;
 import com.dangphuoctai.backend_yourFashion.exceptions.ResourceNotFoundException;
 import com.dangphuoctai.backend_yourFashion.payloads.OrderDTO;
@@ -32,6 +33,7 @@ import com.dangphuoctai.backend_yourFashion.repository.CartRepo;
 import com.dangphuoctai.backend_yourFashion.repository.OrderItemRepo;
 import com.dangphuoctai.backend_yourFashion.repository.OrderRepo;
 import com.dangphuoctai.backend_yourFashion.repository.PaymentRepo;
+import com.dangphuoctai.backend_yourFashion.repository.StoreRepo;
 import com.dangphuoctai.backend_yourFashion.repository.UserRepo;
 import com.dangphuoctai.backend_yourFashion.service.CartService;
 import com.dangphuoctai.backend_yourFashion.service.OrderService;
@@ -68,10 +70,112 @@ public class OrderServiceImpl implements OrderService {
     public CartService cartService;
 
     @Autowired
+    public StoreRepo storeRepo;
+
+    @Autowired
     private AddressRepo addressRepo;
 
     @Autowired
     public ModelMapper modelMapper;
+
+    @Override
+    public String placeOrder(String emailId, Long cartId, String paymentMethod, OrderDTO orderDTOin,
+            List<Long> productIds) {
+        Cart cart = cartRepo.findCartByEmailAndCartId(emailId, cartId);
+
+        if (cart == null) {
+            throw new ResourceNotFoundException("Cart", "cartId", cartId);
+        }
+        if (productIds.isEmpty()) {
+            throw new ResourceNotFoundException("List productId", "productIds", productIds);
+        }
+        List<CartItem> cartItems = new ArrayList<>();
+        List<Long> stores = new ArrayList<>();
+        for (CartItem cartItem : cart.getCartItems()) {
+            if (productIds.contains(cartItem.getProduct().getProductId())) {
+                cartItems.add(cartItem);
+                Long storeId = cartItem.getProduct().getStore().getStoreId();
+                if (!stores.contains(storeId)) {
+                    stores.add(storeId);
+                }
+            }
+        }
+        if (cartItems.size() == 0) {
+            throw new APIException("Cart is empty");
+        }
+        if (stores.size() == 0) {
+            throw new APIException("Store is empty");
+        }
+        System.out.println("orders" + orderDTOin);
+
+        String country = orderDTOin.getAddress().getCountry();
+        String district = orderDTOin.getAddress().getDistrict();
+        String city = orderDTOin.getAddress().getCity();
+        String pincode = orderDTOin.getAddress().getPincode();
+        String ward = orderDTOin.getAddress().getWard();
+        String buildingName = orderDTOin.getAddress().getBuildingName();
+        Address address = addressRepo.findByCountryAndDistrictAndCityAndPincodeAndWardAndBuildingName(
+                country, district,
+                city, pincode, ward, buildingName);
+        if (address == null) {
+            address = new Address(country, district, city, pincode, ward, buildingName);
+            address = addressRepo.save(address);
+        }
+        /////
+        for (Long storeId : stores) {
+            // create order
+            Order order = new Order();
+            Store storeOrder = storeRepo.getReferenceById(storeId);
+            order.setStore(storeOrder);
+            order.setAddress(address);
+            order.setEmail(emailId);
+            order.setDeliveryName(orderDTOin.getDeliveryName());
+            order.setDeliveryPhone(orderDTOin.getDeliveryPhone());
+            order.setOrderDate(LocalDate.now());
+            order.setTotalAmount(0.0);
+            order.setOrderStatus("Order Accepted !");
+            Payment payment = new Payment();
+            payment.setOrder(order);
+            payment.setPaymentMethod(paymentMethod);
+            if (orderDTOin.getPayment() != null) {
+                payment.setPaymentCode(orderDTOin.getPayment().getPaymentCode());
+            }
+            payment = paymentRepo.save(payment);
+            order.setPayment(payment);
+            Order savedOrder = orderRepo.save(order);
+            double total = 0;
+            // create orderItem by order
+            List<OrderItem> orderItems = new ArrayList<>();
+            for (CartItem cartItem : cartItems) {
+                if (storeId == cartItem.getProduct().getStore().getStoreId()) {
+                    OrderItem orderItem = new OrderItem();
+                    orderItem.setProduct(cartItem.getProduct());
+                    orderItem.setQuantity(cartItem.getQuantity());
+                    orderItem.setDiscount(cartItem.getProduct().getDiscount());
+                    orderItem.setOrderedProductPrice(cartItem.getProduct().getSpecialPrice());
+                    orderItem.setOrder(savedOrder);
+                    orderItems.add(orderItem);
+                    total += cartItem.getQuantity() * cartItem.getProduct().getSpecialPrice();
+                }
+            }
+            savedOrder.setTotalAmount(total);
+            orderItems = orderItemRepo.saveAll(orderItems);
+        }
+        // update cart
+        cartItems.forEach(item -> {
+            int quantity = item.getQuantity();
+
+            Product product = item.getProduct();
+
+            cartService.deleteProductFromCart(cartId, product.getProductId());
+
+            product.setQuantity(product.getQuantity() - quantity);
+
+        });
+
+        return "Place Order productIds " + productIds + " success the cartId " + cartId;
+
+    }
 
     @Override
     public OrderDTO placeOrder(String emailId, Long cartId, String paymentMethod, OrderDTO orderDTOin) {
@@ -97,6 +201,7 @@ public class OrderServiceImpl implements OrderService {
             address = new Address(country, district, city, pincode, ward, buildingName);
             address = addressRepo.save(address);
         }
+
         order.setAddress(address);
 
         order.setEmail(emailId);
@@ -198,16 +303,19 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderResponse getAllOrdersByStoreEmail(String email, Integer pageNumber, Integer pageSize, String sortBy,
+    public OrderResponse getAllOrdersByStoreId(Long storeId, String emailCheck, Integer pageNumber, Integer pageSize,
+            String sortBy,
             String sortOrder) {
         Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
 
         Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
 
-        Page<Order> pageOrders = orderRepo.findAllByStoreEmail(email, pageDetails);
+        Page<Order> pageOrders = orderRepo.findAllByStoreStoreId(storeId, pageDetails);
         List<Order> orders = pageOrders.getContent();
-
+        if (emailCheck != null && !orders.get(0).getStore().getEmail().equals(emailCheck)) {
+            throw new AccessDeniedException("Bạn không có quyền truy cập thông tin này.");
+        }
         List<OrderDTO> orderDTOs = orders.stream().map(order -> modelMapper.map(order, OrderDTO.class))
                 .collect(Collectors.toList());
         if (orderDTOs.size() == 0) {

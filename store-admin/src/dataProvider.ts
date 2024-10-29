@@ -144,8 +144,8 @@ export const dataProvider: DataProvider = {
       url = `${apiUrl}/public/stores/${storeId}/categories/${categoryId}/${resource}?${new URLSearchParams(
         query
       ).toString()}`;
-    } else if (resource === "carts" || resource === "orders") {
-      url = `${apiUrl}/seller/stores/${email}/${resource}?${new URLSearchParams(
+    } else if (resource === "orders") {
+      url = `${apiUrl}/seller/stores/${storeId}/${resource}?${new URLSearchParams(
         query
       ).toString()}`;
       console.log(url);

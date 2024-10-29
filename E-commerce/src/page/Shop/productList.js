@@ -137,13 +137,16 @@ function ProductList() {
               </div>
             </div>
           </div>
-          {products.map((pro) => {
-            return (
-              <div className="col-md-3 col-6">
-                <ProductItem product={pro} />
-              </div>
-            );
-          })}
+          <div className="d-flex" style={{ display: "flex", flexWrap: "wrap" }}>
+            {products.map((pro) => {
+              return (
+                <div className="border-product">
+                  <ProductItem product={pro} />
+                </div>
+              );
+            })}
+          </div>
+
           <div class="col-12 d-flex justify-content-center">
             <nav>
               <ul className="pagination">

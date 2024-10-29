@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.dangphuoctai.backend_yourFashion.config.AppConstants;
 import com.dangphuoctai.backend_yourFashion.payloads.OrderDTO;
+import com.dangphuoctai.backend_yourFashion.payloads.OrderRequest;
 import com.dangphuoctai.backend_yourFashion.payloads.OrderResponse;
 import com.dangphuoctai.backend_yourFashion.service.OrderService;
 
@@ -29,118 +30,124 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 @SecurityRequirement(name = "E-Commerce Application")
 public class OrderController {
 
-    @Autowired
-    public OrderService orderService;
+        @Autowired
+        public OrderService orderService;
 
-    @PostMapping("/public/users/{emailId}/carts/{cartId}/payments/{paymentMethod}/order")
-    public ResponseEntity<OrderDTO> orderProducts(@PathVariable String emailId, @PathVariable Long cartId,
-            @PathVariable String paymentMethod, @RequestBody OrderDTO orderDTO) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentEmail = authentication.getName();
-        boolean isAdmin = authentication.getAuthorities().stream()
-                .anyMatch(ga -> ga.getAuthority().equals("ADMIN"));
-        // Nếu không phải admin, chỉ cho phép người dùng truy cập thông tin của họ
-        if (!isAdmin && !emailId.equals(currentEmail)) {
-            throw new AccessDeniedException("Bạn không có quyền truy cập thông tin này.");
+        @PostMapping("/public/users/{emailId}/carts/{cartId}/payments/{paymentMethod}/order")
+        public ResponseEntity<String> orderProducts(@PathVariable String emailId, @PathVariable Long cartId,
+                        @PathVariable String paymentMethod, @RequestBody OrderRequest orderRequest) {
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                String currentEmail = authentication.getName();
+                boolean isAdmin = authentication.getAuthorities().stream()
+                                .anyMatch(ga -> ga.getAuthority().equals("ADMIN"));
+                // Nếu không phải admin, chỉ cho phép người dùng truy cập thông tin của họ
+                if (!isAdmin && !emailId.equals(currentEmail)) {
+                        throw new AccessDeniedException("Bạn không có quyền truy cập thông tin này.");
+                }
+                String status = orderService.placeOrder(emailId, cartId, paymentMethod, orderRequest.getOrderDTO(),
+                                orderRequest.getProductIds());
+
+                return new ResponseEntity<String>(status, HttpStatus.CREATED);
+
         }
-        OrderDTO order = orderService.placeOrder(emailId, cartId, paymentMethod, orderDTO);
 
-        return new ResponseEntity<OrderDTO>(order, HttpStatus.CREATED);
+        @GetMapping("/admin/orders")
+        public ResponseEntity<OrderResponse> getAllOrders(
+                        @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
+                        @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize,
+                        @RequestParam(name = "sortBy", defaultValue = AppConstants.SORT_ORDERS_BY, required = false) String sortBy,
+                        @RequestParam(name = "sortOrder", defaultValue = AppConstants.SORT_DIR, required = false) String sortOrder) {
 
-    }
+                OrderResponse orderResponse = orderService.getAllOrders(
+                                pageNumber == 0 ? pageNumber : pageNumber - 1,
+                                pageSize,
+                                "id".equals(sortBy) ? "orderId" : sortBy,
+                                sortOrder);
 
-    @GetMapping("/admin/orders")
-    public ResponseEntity<OrderResponse> getAllOrders(
-            @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
-            @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize,
-            @RequestParam(name = "sortBy", defaultValue = AppConstants.SORT_ORDERS_BY, required = false) String sortBy,
-            @RequestParam(name = "sortOrder", defaultValue = AppConstants.SORT_DIR, required = false) String sortOrder) {
+                return new ResponseEntity<OrderResponse>(orderResponse, HttpStatus.OK);
 
-        OrderResponse orderResponse = orderService.getAllOrders(
-                pageNumber == 0 ? pageNumber : pageNumber - 1,
-                pageSize,
-                "id".equals(sortBy) ? "orderId" : sortBy,
-                sortOrder);
-
-        return new ResponseEntity<OrderResponse>(orderResponse, HttpStatus.OK);
-
-    }
-
-    @GetMapping("/seller/stores/{email}/orders")
-    public ResponseEntity<OrderResponse> getOrdersByStore(@PathVariable String email,
-            @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
-            @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize,
-            @RequestParam(name = "sortBy", defaultValue = AppConstants.SORT_ORDERS_BY, required = false) String sortBy,
-            @RequestParam(name = "sortOrder", defaultValue = AppConstants.SORT_DIR, required = false) String sortOrder) {
-
-        OrderResponse orderResponse = orderService.getAllOrdersByStoreEmail(email,
-                pageNumber == 0 ? pageNumber : pageNumber - 1,
-                pageSize,
-                "id".equals(sortBy) ? "orderId" : sortBy,
-                sortOrder);
-
-        return new ResponseEntity<OrderResponse>(orderResponse, HttpStatus.OK);
-
-    }
-
-    @GetMapping("public/users/{emailId}/orders")
-    public ResponseEntity<List<OrderDTO>> getOrdersByUser(@PathVariable String emailId,
-            @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
-            @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize,
-            @RequestParam(name = "sortBy", defaultValue = AppConstants.SORT_ORDERS_BY, required = false) String sortBy,
-            @RequestParam(name = "sortOrder", defaultValue = AppConstants.SORT_DIR, required = false) String sortOrder) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentEmail = authentication.getName();
-        boolean isAdmin = authentication.getAuthorities().stream()
-                .anyMatch(ga -> ga.getAuthority().equals("ADMIN"));
-        // Nếu không phải admin, chỉ cho phép người dùng truy cập thông tin của họ
-        if (!isAdmin && !emailId.equals(currentEmail)) {
-            throw new AccessDeniedException("Bạn không có quyền truy cập thông tin này.");
         }
-        List<OrderDTO> orders = orderService.getOrdersByUser(
-                emailId,
-                pageNumber == 0 ? pageNumber : pageNumber - 1,
-                pageSize,
-                "id".equals(sortBy) ? "orderId" : sortBy,
-                sortOrder);
 
-        return new ResponseEntity<List<OrderDTO>>(orders, HttpStatus.OK);
+        @GetMapping("/seller/stores/{storeId}/orders")
+        public ResponseEntity<OrderResponse> getOrdersByStore(@PathVariable Long storeId,
+                        @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
+                        @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize,
+                        @RequestParam(name = "sortBy", defaultValue = AppConstants.SORT_ORDERS_BY, required = false) String sortBy,
+                        @RequestParam(name = "sortOrder", defaultValue = AppConstants.SORT_DIR, required = false) String sortOrder) {
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                String currentEmail = authentication.getName();
+                boolean isAdmin = authentication.getAuthorities().stream()
+                                .anyMatch(ga -> ga.getAuthority().equals("ADMIN"));
 
-    }
+                OrderResponse orderResponse = orderService.getAllOrdersByStoreId(storeId, isAdmin ? null : currentEmail,
+                                pageNumber == 0 ? pageNumber : pageNumber - 1,
+                                pageSize,
+                                "id".equals(sortBy) ? "orderId" : sortBy,
+                                sortOrder);
 
-    @GetMapping("public/users/{emailId}/orders/{orderId}")
-    public ResponseEntity<OrderDTO> getOrderByUser(@PathVariable String emailId, @PathVariable Long orderId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentEmail = authentication.getName();
-        boolean isAdmin = authentication.getAuthorities().stream()
-                .anyMatch(ga -> ga.getAuthority().equals("ADMIN"));
-        boolean isSeller = authentication.getAuthorities().stream()
-                .anyMatch(ga -> ga.getAuthority().equals("SELLER"));
-        // Nếu không phải admin, chỉ cho phép người dùng truy cập thông tin của họ
-        if (!isAdmin && !emailId.equals(currentEmail) && !isSeller) {
-            throw new AccessDeniedException("Bạn không có quyền truy cập thông tin này.");
+                return new ResponseEntity<OrderResponse>(orderResponse, HttpStatus.OK);
+
         }
-        OrderDTO order = orderService.getOrder(emailId, orderId, isSeller ? currentEmail : null);
 
-        return new ResponseEntity<OrderDTO>(order, HttpStatus.OK);
+        @GetMapping("public/users/{emailId}/orders")
+        public ResponseEntity<List<OrderDTO>> getOrdersByUser(@PathVariable String emailId,
+                        @RequestParam(name = "pageNumber", defaultValue = AppConstants.PAGE_NUMBER, required = false) Integer pageNumber,
+                        @RequestParam(name = "pageSize", defaultValue = AppConstants.PAGE_SIZE, required = false) Integer pageSize,
+                        @RequestParam(name = "sortBy", defaultValue = AppConstants.SORT_ORDERS_BY, required = false) String sortBy,
+                        @RequestParam(name = "sortOrder", defaultValue = AppConstants.SORT_DIR, required = false) String sortOrder) {
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                String currentEmail = authentication.getName();
+                boolean isAdmin = authentication.getAuthorities().stream()
+                                .anyMatch(ga -> ga.getAuthority().equals("ADMIN"));
+                // Nếu không phải admin, chỉ cho phép người dùng truy cập thông tin của họ
+                if (!isAdmin && !emailId.equals(currentEmail)) {
+                        throw new AccessDeniedException("Bạn không có quyền truy cập thông tin này.");
+                }
+                List<OrderDTO> orders = orderService.getOrdersByUser(
+                                emailId,
+                                pageNumber == 0 ? pageNumber : pageNumber - 1,
+                                pageSize,
+                                "id".equals(sortBy) ? "orderId" : sortBy,
+                                sortOrder);
 
-    }
+                return new ResponseEntity<List<OrderDTO>>(orders, HttpStatus.OK);
 
-    @PutMapping("seller/users/{emailId}/orders/{orderId}/orderStatus/{orderStatus}")
-    public ResponseEntity<OrderDTO> updateOrderByUser(@PathVariable String emailId, @PathVariable Long orderId,
-            @PathVariable String orderStatus) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentEmail = authentication.getName();
-        boolean isAdmin = authentication.getAuthorities().stream()
-                .anyMatch(ga -> ga.getAuthority().equals("ADMIN"));
-        boolean isSeller = authentication.getAuthorities().stream()
-                .anyMatch(ga -> ga.getAuthority().equals("SELLER"));
-        // Nếu không phải admin, chỉ cho phép người dùng truy cập thông tin của họ
-        if (!isAdmin && !isSeller) {
-            throw new AccessDeniedException("Bạn không có quyền truy cập thông tin này.");
         }
-        OrderDTO order = orderService.updateOrder(emailId, orderId, orderStatus, isSeller ? currentEmail : null);
 
-        return new ResponseEntity<OrderDTO>(order, HttpStatus.OK);
-    }
+        @GetMapping("public/users/{emailId}/orders/{orderId}")
+        public ResponseEntity<OrderDTO> getOrderByUser(@PathVariable String emailId, @PathVariable Long orderId) {
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                String currentEmail = authentication.getName();
+                boolean isAdmin = authentication.getAuthorities().stream()
+                                .anyMatch(ga -> ga.getAuthority().equals("ADMIN"));
+                boolean isSeller = authentication.getAuthorities().stream()
+                                .anyMatch(ga -> ga.getAuthority().equals("SELLER"));
+                // Nếu không phải admin, chỉ cho phép người dùng truy cập thông tin của họ
+                if (!isAdmin && !emailId.equals(currentEmail) && !isSeller) {
+                        throw new AccessDeniedException("Bạn không có quyền truy cập thông tin này.");
+                }
+                OrderDTO order = orderService.getOrder(emailId, orderId, isSeller ? currentEmail : null);
+
+                return new ResponseEntity<OrderDTO>(order, HttpStatus.OK);
+
+        }
+
+        @PutMapping("seller/users/{emailId}/orders/{orderId}/orderStatus/{orderStatus}")
+        public ResponseEntity<OrderDTO> updateOrderByUser(@PathVariable String emailId, @PathVariable Long orderId,
+                        @PathVariable String orderStatus) {
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                String currentEmail = authentication.getName();
+                boolean isAdmin = authentication.getAuthorities().stream()
+                                .anyMatch(ga -> ga.getAuthority().equals("ADMIN"));
+                boolean isSeller = authentication.getAuthorities().stream()
+                                .anyMatch(ga -> ga.getAuthority().equals("SELLER"));
+                // Nếu không phải admin, chỉ cho phép người dùng truy cập thông tin của họ
+                if (!isAdmin && !isSeller) {
+                        throw new AccessDeniedException("Bạn không có quyền truy cập thông tin này.");
+                }
+                OrderDTO order = orderService.updateOrder(emailId, orderId, orderStatus,
+                                isSeller ? currentEmail : null);
+
+                return new ResponseEntity<OrderDTO>(order, HttpStatus.OK);
+        }
 }

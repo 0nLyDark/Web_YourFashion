@@ -1,5 +1,6 @@
 package com.dangphuoctai.backend_yourFashion.service.impl;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -41,6 +42,7 @@ public class CartServiceImpl implements CartService {
     @Autowired
     private ModelMapper modelMapper;
 
+    private double total = 0;
     private final Map<Long, Lock> lockMap = new ConcurrentHashMap<>();
 
     private Lock getLock(Long cartId) {
@@ -145,6 +147,9 @@ public class CartServiceImpl implements CartService {
 
             return cartItemDTO;
         }).collect(Collectors.toList());
+        Collections.sort(cartItems, (cartItem1, cartItem2) -> {
+            return (int) (cartItem2.getCartItemId() - cartItem1.getCartItemId());
+        });
         cartDTO.setCartItems(cartItems);
         cartDTO.setEmail(cart.getUser().getEmail());
 
@@ -226,19 +231,34 @@ public class CartServiceImpl implements CartService {
         CartItem cartItem = cartItemRepo.findCartItemByProductIdAndCartId(cartId, productId);
 
         if (cartItem == null) {
-            throw new ResourceNotFoundException("Product", "productId", productId);
-
+            throw new ResourceNotFoundException("Product", "productId", productId + "aaaa" + cartId);
         }
 
         cart.setTotalPrice(cart.getTotalPrice() - (cartItem.getProduct().getSpecialPrice() * cartItem.getQuantity()));
 
-        Product product = cartItem.getProduct();
-        // product.setQuantity(product.getQuantity() + cartItem.getQuantity());
-
-        cartItemRepo.deleteCartItemByProductIdAndCartId(cartId, productId);
+        cartItemRepo.deleteCartItemByProductIdAndCartId(productId, cartId);
 
         return "Product " + cartItem.getProduct().getProductName() + " removed from the cart !!! ";
 
     }
 
+    @Override
+    public String deleteProductFromCartAll(Long cartId, List<Long> productIds) {
+        Cart cart = cartRepo.findById(cartId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart", "cartId", cartId));
+        List<CartItem> cartItems = cartItemRepo.findCartItemByProductIdsAndCartId(cartId, productIds);
+
+        if (cartItems.isEmpty()) {
+            throw new ResourceNotFoundException("Product", "productId", productIds);
+        }
+        total = cart.getTotalPrice();
+        for (CartItem item : cartItems) {
+            total -= item.getProduct().getSpecialPrice() * item.getQuantity();
+        }
+        cartItemRepo.deleteCartItemByProductIdsAndCartId(productIds, cartId);
+        cart.setTotalPrice(total);
+
+        return "Product removed from the cart !!! ";
+
+    }
 }

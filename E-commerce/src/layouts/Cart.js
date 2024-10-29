@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { DELETE_ID, GET_ID, PUT_EDIT } from "../api/apiService";
+import { DELETE_ALL, DELETE_ID, GET_ID, PUT_EDIT } from "../api/apiService";
 import { formatCurrency } from "../page/Product/formatCurrency";
 import { apiURL } from "../api/apiConfig";
 import CartNull from "./CartNull";
@@ -9,10 +9,14 @@ import { useCart } from "../context/CartContext";
 import { toast } from "react-toastify";
 function Cart() {
   const { deleteCart } = useCart();
+  const { deleteCartAll } = useCart();
   const [cartItems, setCartItems] = useState([]);
+  const [cartStore, setCartStore] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [quantitys, setQuantitys] = useState({});
+  const [listProduct, setListProduct] = useState([]);
+  const [constProducts, setConstProducts] = useState([]);
   const [checkOutStatus, setCheckOutStatus] = useState(true);
   const navigate = useNavigate(); // Initialize useNavigate
   const cartId = localStorage.getItem("cartId");
@@ -87,7 +91,11 @@ function Cart() {
           if (response) {
             console.log(response);
             setCartItems(response.cartItems);
-            setTotalAmount(response.totalPrice);
+            let newList = response.cartItems.map(
+              (item) => item.product.productId
+            );
+            setConstProducts(newList);
+            // setTotalAmount(response.totalPrice);
             setLoading(true);
           }
         })
@@ -106,7 +114,6 @@ function Cart() {
           if (response) {
             console.log("responseCart", response);
             setCartItems(response.cartItems);
-            setTotalAmount(response.totalPrice);
             delete newQuantitys[key];
             console.log("updated product in cart success");
           }
@@ -145,13 +152,13 @@ function Cart() {
             (cartItem) => cartItem.product.productId != productId
           )
         );
-        setTotalAmount(totalAmount - totalMoney);
+        setListProduct(listProduct.filter((item) => item != productId));
       })
       .catch((error) => console.error(error));
   };
   const checkOut = () => {
     if (checkOutStatus) {
-      navigate("/Checkout");
+      navigate(`/Checkout?productIds=${listProduct}`);
     } else {
       toast.warning("Giỏ hàng không hợp lệ, hãy cập nhật lại giỏ hàng !", {
         position: "top-center",
@@ -159,168 +166,272 @@ function Cart() {
       });
     }
   };
+  useEffect(() => {
+    let total = cartItems.reduce(function (previousValue, cartItem) {
+      if (listProduct.includes(cartItem.product.productId)) {
+        return (
+          previousValue + cartItem.quantity * cartItem.product.specialPrice
+        );
+      } else {
+        return previousValue;
+      }
+    }, 0);
+    setTotalAmount(total);
+  }, [listProduct, cartItems]);
+  useEffect(() => {
+    let listStore = [];
+    cartItems.map((item) => {
+      let check = listStore.some((store) => store.id == item.product.store.id);
+      if (!check) {
+        let store = {
+          id: item.product.store.id,
+          storeName: item.product.store.storeName,
+        };
+        listStore.push(store);
+      }
+    });
+    setCartStore(listStore);
+  }, [cartItems]);
+  const changeProducts = (id) => {
+    if (listProduct.includes(id)) {
+      let newList = listProduct.filter((item) => item != id);
+      setListProduct(newList);
+    } else {
+      setListProduct((prePro) => [...prePro, id]);
+    }
+  };
+  const changeProductsAll = (event) => {
+    let value = event.target.checked;
+    if (value) {
+      setListProduct(constProducts);
+    } else {
+      setListProduct([]);
+    }
+  };
+  const deleteAll = () => {
+    const cartId = localStorage.getItem("cartId");
+    DELETE_ALL(`carts/${cartId}/products`, listProduct)
+      .then((response) => {
+        console.log("deleteCart", response);
+      })
+      .catch((error) => console.error(error));
+    deleteCartAll(listProduct);
+    let updatedQuantitys = quantitys;
+    listProduct.map((proId) => {
+      let { [proId]: removed, ...remainingQuantitys } = updatedQuantitys;
+      updatedQuantitys = remainingQuantitys;
+    });
+
+    setQuantitys({});
+    setCartItems(
+      cartItems.filter(
+        (cartItem) => !listProduct.includes(cartItem.product.productId)
+      )
+    );
+    setListProduct([]);
+  };
   return (
-    <section className="content">
+    <section
+      className="content"
+      style={{ backgroundColor: "rgba(0, 0, 0, 0.04)" }}
+    >
       <div className="container py-4">
-        <h2 className="text-center mb-4">Giỏ Hàng Của Tôi</h2>
-        <div className="content-cart" style={{ minHeight: "500px" }}>
+        <h2 className="text-center mb-4">
+          <strong>Giỏ Hàng</strong>
+        </h2>
+
+        <div className="content-cart w-100" style={{ minHeight: "500px" }}>
           {loading && cartItems.length > 0 && (
-            <table className="table table-bordered">
-              <thead>
-                <tr>
-                  <th style={{ width: "80px" }} className="text-center">
-                    Mã SP
-                  </th>
-                  <th style={{ width: "150px",textAlign:'center' }}>Hình</th>
-                  <th>Tên sản phẩm</th>
-                  <th className="text-center" style={{ width: "150px" }}>
-                    Số lượng
-                  </th>
-                  <th style={{ minWidth: "120px" }}>Giá</th>
-                  <th style={{ width: "100px" }} >Giảm giá</th>
-
-                  <th style={{ minWidth: "120px" }}>Thành tiền</th>
-                  <th style={{ width: " 50px" }}>
-                    <a
-                      onclick="handleDeleteAllCart()"
-                      className="btn text-danger "
-                    >
-                      <i className="fas fa-trash "></i>
-                    </a>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {cartItems &&
-                  cartItems.map((row) => (
-                    <tr>
-                      <td style={{ width: "40px" }} className="text-center">
-                        {row.product.productId}
-                      </td>
-                      <td style={{ width: "150px" }}>
-                        <Link to={`/productDetail/${row.product.productId}`}>
-                          <img
-                            className="img-fluid w-100"
-                            src={`${apiURL}products/image/${row.product.image}`}
-                            alt={row.product.image}
-                          />
-                        </Link>
-                      </td>
-                      <td>
-                        <p>{row.product.productName}</p>
-                        <span>Tồn kho: {row.product.quantity}</span>
-                      </td>
-
-                      <td className="text-center " style={{ width: "" }}>
-                        <div className=" quantity-plus-minus input-group d-flex justify-content-center">
-                          <i
-                            className="fa-solid fa-minus input-group-btn minus"
-                            onClick={() => {
-                              minusQuantity(
-                                row.product.productId,
-                                quantitys[row.product.productId] || row.quantity
-                              );
-                            }}
-                          ></i>
-                          <input
-                            className="text-center"
-                            type="text"
-                            min="1"
-                            value={
-                              quantitys[row.product.productId]
-                                ? quantitys[row.product.productId]
-                                : row.quantity
-                            }
-                            style={{ width: "42px" }}
-                            onChange={(e) =>
-                              changeQuantitys(
-                                e,
-                                row.product.productId,
-                                row.product.quantity
-                              )
-                            }
-                          />
-                          <i
-                            className="fa-solid fa-plus input-group-btn plus"
-                            onClick={(e) => {
-                              plusQuantity(
-                                row.product.productId,
-                                quantitys[row.product.productId] ||
-                                  row.quantity,
-                                row.product.quantity
-                              );
-                            }}
-                          ></i>
-                        </div>
-                        <div style={{ color: "red" }}>
-                          {row.quantity > row.product.quantity
-                            ? "Hàng tồn kho không đủ!"
-                            : ""}
-                        </div>
-                        {/* {{-- <input style={{width: "60px"}} type="number" min='1' value="{{ $row_cart['qty'] }}" > --}} */}
-                      </td>
-                      <td>{formatCurrency(row.product.price)}</td>
-                      <td>
-                        {row.product.discount > 0
-                          ? `${row.product.discount} %`
-                          : ""}{" "}
-                      </td>
-
-                      <td name="total">
-                        {formatCurrency(
-                          row.product.specialPrice * row.quantity
-                        )}
-                      </td>
-                      <td style={{ width: "50px" }}>
-                        <a
-                          onClick={(e) => {
-                            deleteProductCart(
-                              row.product.productId,
-                              row.product.specialPrice * row.quantity
-                            );
-                          }}
-                          className="btn text-black"
-                        >
-                          <i className="fa-solid fa-x"></i>
-                        </a>
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-              <tfoot>
-                <tr>
-                  <th colspan="4" style={{ color: "white" }}>
-                    <Link
-                      to="/ListingGrid"
-                      className="btn "
-                      style={{ color: "white", backgroundColor: "#d8d8d8" }}
-                    >
-                      Mua thêm
-                    </Link>
-                    <button
-                      onClick={updateCart}
-                      className="btn btn-secondary mx-4"
-                    >
-                      Cập nhật
-                    </button>
-                    <a onClick={checkOut} className="btn btn-danger">
-                      Thanh toán
-                    </a>
-                    {!checkOutStatus && (
+            <div>
+              <div className="cart-header">
+                <div className="text-center">
+                  <input
+                    type="checkbox"
+                    checked={listProduct.length == constProducts.length}
+                    onChange={changeProductsAll}
+                  />
+                </div>
+                <div>
+                  Sản Phẩm{" "}
+                    {/* {!checkOutStatus && (
                       <span className="text-danger ms-2">
                         Hàng tồn kho không đủ vui lòng cập nhật lại giỏ hàng!
                       </span>
-                    )}
-                  </th>
-                  <th colspan="3" className="text-end">
-                    <span className="fs-5">
-                      Tổng tiền:{" "}
-                      <span id="totalMoney">{formatCurrency(totalAmount)}</span>
-                    </span>
-                  </th>
-                </tr>
-              </tfoot>
-            </table>
+                    )} */}
+                </div>
+                <div className="text-center">Đơn Giá</div>
+                <div className="text-center">Số Lượng</div>
+                <div className="text-center">Số Tiền</div>
+                <div className="text-center">Thao Tác</div>
+              </div>
+              {cartStore.map((store) => (
+                <div className="cart-store" key={"store" + store.id}>
+                  <div className="store-name">
+                    <div className="text-center">
+                      <input type="checkbox" />
+                    </div>
+                    <div>
+                      <Link>{store.storeName}</Link>
+                    </div>
+                  </div>
+                  {cartItems.map(
+                    (row) =>
+                      row.product.store.id == store.id && (
+                        <div class="cart-item" key={row.product.productId}>
+                          <div className="text-center">
+                            <input
+                              type="checkbox"
+                              checked={listProduct.includes(
+                                row.product.productId
+                              )}
+                              onChange={() =>
+                                changeProducts(row.product.productId)
+                              }
+                            />
+                          </div>
+                          <div class="product-details">
+                            <div>
+                              <Link
+                                to={`/productDetail/${row.product.productId}`}
+                              >
+                                <img
+                                  className=""
+                                  src={`${apiURL}products/image/${row.product.image}`}
+                                  alt={row.product.image}
+                                />
+                              </Link>
+                            </div>
+                            <div className="ps-2">
+                              <div class="title">{row.product.productName}</div>
+                              <div class="description">
+                                Tồn kho: {row.product.quantity}
+                              </div>
+                            </div>
+                          </div>
+                          <div class="price">
+                            {row.product.discount != 0 && (
+                              <span class="old-price">
+                                {formatCurrency(row.product.price)}
+                              </span>
+                            )}
+                            <span class="new-price">
+                              {formatCurrency(row.product.specialPrice)}
+                            </span>
+                          </div>
+                          <div class="quantity">
+                            <div className=" quantity-plus-minus input-group d-flex justify-content-center">
+                              <i
+                                className="fa-solid fa-minus input-group-btn minus"
+                                onClick={() => {
+                                  minusQuantity(
+                                    row.product.productId,
+                                    quantitys[row.product.productId] ||
+                                      row.quantity
+                                  );
+                                }}
+                              ></i>
+                              <input
+                                className="text-center"
+                                type="text"
+                                min="1"
+                                value={
+                                  quantitys[row.product.productId]
+                                    ? quantitys[row.product.productId]
+                                    : row.quantity
+                                }
+                                style={{ width: "42px" }}
+                                onChange={(e) =>
+                                  changeQuantitys(
+                                    e,
+                                    row.product.productId,
+                                    row.product.quantity
+                                  )
+                                }
+                              />
+                              <i
+                                className="fa-solid fa-plus input-group-btn plus"
+                                onClick={(e) => {
+                                  plusQuantity(
+                                    row.product.productId,
+                                    quantitys[row.product.productId] ||
+                                      row.quantity,
+                                    row.product.quantity
+                                  );
+                                }}
+                              ></i>
+                            </div>
+                          </div>
+                          <div class="total-price">
+                            {formatCurrency(
+                              row.product.specialPrice * row.quantity
+                            )}
+                          </div>
+                          <div class="actions">
+                            <a
+                              onClick={(e) => {
+                                deleteProductCart(
+                                  row.product.productId,
+                                  row.product.specialPrice * row.quantity
+                                );
+                              }}
+                            >
+                              Xóa
+                            </a>
+                          </div>
+                        </div>
+                      )
+                  )}
+                </div>
+              ))}
+
+              <div className="cart-footer">
+                <div className="text-center">
+                  <input
+                    id="checkbox-cart-footer"
+                    type="checkbox"
+                    checked={listProduct.length == constProducts.length}
+                    onChange={changeProductsAll}
+                  />
+                </div>
+                <label htmlFor="checkbox-cart-footer">Chọn tất cả</label>
+                <div className="text-center">
+                  <a
+                    className="btn text-black fa-blod"
+                    onClick={deleteAll}
+                    style={{ cursor: "pointer" }}
+                  >
+                    Xóa
+                  </a>
+                </div>
+                <button onClick={updateCart} className="btn btn-secondary mx-4">
+                  Cập nhật
+                </button>
+                <Link
+                  to="/ListingGrid"
+                  className="btn "
+                  style={{ color: "white", backgroundColor: "#d8d8d8" }}
+                >
+                  Mua thêm
+                </Link>
+
+                <span className="text-end pe-4" style={{ fontSize: "18px" }}>
+                  Tổng thanh toán:{" "}
+                  <span
+                    id="totalMoney"
+                    style={{ color: "#e74c3c", fontWeight: "bold" }}
+                  >
+                    {formatCurrency(totalAmount)}
+                  </span>
+                </span>
+                <a
+                  onClick={checkOut}
+                  className="btn "
+                  style={{ color: "white", backgroundColor: "#e74c3c" }}
+                >
+                  Mua hàng
+                </a>
+              </div>
+            </div>
           )}
           {loading && cartItems.length == 0 && <CartNull />}
         </div>

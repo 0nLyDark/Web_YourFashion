@@ -19,5 +19,7 @@ public interface OrderRepo extends JpaRepository<Order, Long> {
 
     Page<Order> findAllByStoreEmail(String emailId, Pageable pageable);
 
+    Page<Order> findAllByStoreStoreId(Long storeId, Pageable pageable);
+
     List<Order> findAllByEmail(String emailId);
 }
