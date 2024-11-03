@@ -313,14 +313,14 @@ public class OrderServiceImpl implements OrderService {
 
         Page<Order> pageOrders = orderRepo.findAllByStoreStoreId(storeId, pageDetails);
         List<Order> orders = pageOrders.getContent();
+        if (orders.size() == 0) {
+            throw new ResourceNotFoundException("Order", "storeId", storeId);
+        }
         if (emailCheck != null && !orders.get(0).getStore().getEmail().equals(emailCheck)) {
             throw new AccessDeniedException("Bạn không có quyền truy cập thông tin này.");
         }
         List<OrderDTO> orderDTOs = orders.stream().map(order -> modelMapper.map(order, OrderDTO.class))
                 .collect(Collectors.toList());
-        if (orderDTOs.size() == 0) {
-            throw new APIException("No orders placed yet by the users");
-        }
 
         OrderResponse orderResponse = new OrderResponse();
 
@@ -348,9 +348,9 @@ public class OrderServiceImpl implements OrderService {
 
         List<OrderDTO> orderDTOs = orders.stream().map(order -> modelMapper.map(order, OrderDTO.class))
                 .collect(Collectors.toList());
-        if (orderDTOs.size() == 0) {
-            throw new APIException("No orders placed yet by the users");
-        }
+        // if (orderDTOs.size() == 0) {
+        // throw new APIException("No orders placed yet by the users");
+        // }
 
         OrderResponse orderResponse = new OrderResponse();
 

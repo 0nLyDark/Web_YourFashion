@@ -33,12 +33,12 @@ const SectionContent = () => {
       ],
       address: {
         addressId: 0,
-        street: "strifang",
+        ward: "strifang",
         buildingName: "fasfasfsa",
         city: city,
-        state: "string",
+        district: "string",
         country: country,
-        pincode: "string",
+        pincode: "999999",
       },
     };
     try {

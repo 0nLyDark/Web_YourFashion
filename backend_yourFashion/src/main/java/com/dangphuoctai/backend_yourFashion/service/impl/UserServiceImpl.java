@@ -73,9 +73,10 @@ public class UserServiceImpl implements UserService {
                         String ward = userDTO.getAddress().getWard();
                         String buildingName = userDTO.getAddress().getBuildingName();
 
-                        Address address = addressRepo.findByCountryAndDistrictAndCityAndPincodeAndWardAndBuildingName(
-                                        country, district,
-                                        city, pincode, ward, buildingName);
+                        Address address = addressRepo
+                                        .findByCountryAndDistrictAndCityAndPincodeAndWardAndBuildingName(
+                                                        country, district,
+                                                        city, pincode, ward, buildingName);
                         if (address == null) {
                                 address = new Address(country, district, city, pincode, ward, buildingName);
                                 address = addressRepo.save(address);

@@ -4,6 +4,7 @@ import java.util.List;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -32,7 +33,7 @@ public class Category {
     @Size(min = 5, message = "Category name must contain atleast 5 characters")
     private String categoryName;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "parent_id")
     private Category categoryParent;
 

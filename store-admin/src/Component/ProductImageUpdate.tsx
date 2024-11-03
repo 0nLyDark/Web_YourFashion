@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useNotify, useRedirect } from "react-admin";
 import axios from "axios";
-// import "./css/ProductImageUpdate.css"; // Import your CSS file for styling
+import "./css/ProductImageUpdate.css"; // Import your CSS file for styling
 import { error } from "console";
 
 const ProductImageUpdate = () => {

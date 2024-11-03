@@ -139,8 +139,8 @@ export const CustomProductByStore = () => {
   };
   return (
     <Card style={{ padding: "20px" }}>
-      <Button onClick={changePageToProducts}>Quay cửa hàng</Button>
-      <List resource="products">
+      <Button onClick={changePageToProducts}>Quay lại cửa hàng</Button>
+      <List resource="products" queryOptions={{ meta: { storeId: id } }}>
         <Datagrid>
           <TextField source="productId" label="Product ID" />
           <TextField source="productName" label="Product Name" />

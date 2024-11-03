@@ -137,7 +137,7 @@ function ProductList() {
               </div>
             </div>
           </div>
-          <div className="d-flex" style={{ display: "flex", flexWrap: "wrap" }}>
+          <div className="d-flex flex-wrap" >
             {products.map((pro) => {
               return (
                 <div className="border-product">

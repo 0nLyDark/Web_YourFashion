@@ -11,6 +11,7 @@ import UserRegister from "./UserRegister";
 import CheckOut from "./CheckOut";
 import ProfileUser from "./ProfileUser";
 import Shop from "./Shop";
+import ShopCreate from "./ShopCreate";
 const Main = () => (
   <main>
     <Routes>
@@ -26,6 +27,7 @@ const Main = () => (
       <Route path="/CheckOut" element={<CheckOut />} />
 
       <Route path="/Shop/:id" element={<Shop />} />
+      <Route path="/Shop/create" element={<ShopCreate />} />
 
       <Route path="/*" element={<NotFound />} />
     </Routes>

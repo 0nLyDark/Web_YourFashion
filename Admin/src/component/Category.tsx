@@ -6,7 +6,6 @@ export const CategoryList = () => (
             <TextField source="categoryId" label="Category ID" />
             <TextField source="categoryName" label="Category Name" />
             <TextField source="categoryParent.categoryName" label="Category Parent" />
-
             <EditButton />
             <DeleteButton />
         </Datagrid>

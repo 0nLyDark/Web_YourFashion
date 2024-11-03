@@ -167,7 +167,10 @@ function CheckOut() {
         data
       )
         .then((response) => {
-          setCartItems([]);
+          let cartNew = cartItemss.filter(
+            (item) => !listProduct.includes(item.product.productId)
+          );
+          setCartItems(cartNew);
           setCartItemss([]);
           setTotalAmount(0);
           toast.success("Chúc mừng bạn đã đặt hàng thành công", {
@@ -212,7 +215,10 @@ function CheckOut() {
           data
         )
           .then((response) => {
-            setCartItems([]);
+            let cartNew = cartItemss.filter(
+              (item) => !listProduct.includes(item.product.productId)
+            );
+            setCartItems(cartNew);
             setCartItemss([]);
             setTotalAmount(0);
             toast.success("Chúc mừng bạn đã đặt hàng thành công", {
@@ -249,7 +255,10 @@ function CheckOut() {
             data
           )
             .then((response) => {
-              setCartItems([]);
+              let cartNew = cartItemss.filter(
+                (item) => !listProduct.includes(item.product.productId)
+              );
+              setCartItems(cartNew);
               setCartItemss([]);
               setTotalAmount(0);
               toast.success("Chúc mừng bạn đã đặt hàng thành công", {
@@ -393,73 +402,7 @@ function CheckOut() {
 
             <div className="row">
               <div className="col-md-6 col-12 my-4"></div>
-              {/* <div className="col-md-6 col-12 my-4 text-end">
-                <button
-                  type="submit"
-                  onClick={handleOrder}
-                  className="btn bg-black text-white fROm-control"
-                  style={{ width: "100%", maxWidth: " 250px" }}
-                >
-                  <strong>ĐẶT HÀNG</strong>
-                </button>
-              </div> */}
             </div>
-            <div className="row">
-              <div className="col-md-6">
-                <button
-                  onClick={handleOrderVNPay}
-                  className="btn"
-                  style={{ border: "none" }}
-                >
-                  <img
-                    src={require("../assets/image/logoVNPay.png")}
-                    style={{ width: "150px", height: "75px" }}
-                    className="img-fluid"
-                    alt="aaaaaaaaa"
-                  />
-                </button>
-              </div>
-              <div className="col-md-6">
-                <PayPalButtons
-                  style={{ color: "silver" }}
-                  onClick={(data, actions) => {
-                    if (statusCheckOut.current) {
-                      return actions.resolve();
-                    } else {
-                      alert("Hãy nhập đầy đủ thông tin vận chuyển");
-                      return actions.reject();
-                    }
-                  }}
-                  createOrder={(data, actions) => {
-                    return actions.order.create({
-                      purchase_units: [
-                        {
-                          description: `Thanh toán đơn hàng của email: ${email}`,
-                          amount: {
-                            // currency_code:"VND",
-                            // value: 10.0,
-                            value: amount.current,
-                          },
-                        },
-                      ],
-                    });
-                  }}
-                  onApprove={async (data, actions) => {
-                    const order = await actions.order.capture();
-                    console.log("order", order);
-                    handleApproveRef.current(data.orderID);
-                  }}
-                  onCancel={() => {}}
-                  onError={(error) => {
-                    console.error("Thanh toán đã xảy ra lỗi: ", error);
-                    alert("Thanh toán đã xảy ra lỗi: ", error);
-                  }}
-                />
-              </div>
-            </div>
-            {/* @else
-                        <p>Bạn đã có tài khoản? <a href="{{ route('site.customer.getlogin') }}">Đăng Nhập</a></p>
-                    @endif */}
           </div>
           <div className="col-md-6 my-2">
             <div className="mb-3">
@@ -592,7 +535,35 @@ function CheckOut() {
             </div>
           ))}
           <div className="order-footer">
-            <div></div>
+            <div style={{ padding: "10px" }}>
+              <input
+                type="radio"
+                id="payment"
+                name="paymentMethod"
+                checked={paymentMethod === "Cash on Delivery"}
+                onClick={(e) => setPaymentMethod("Cash on Delivery")}
+              />
+              <label htmlFor="payment">Thanh toán khi nhận hàng</label>
+              <br />
+              <input
+                type="radio"
+                id="paymentPayPal"
+                name="paymentMethod"
+                checked={paymentMethod === "Payment online PayPal"}
+                onClick={(e) => setPaymentMethod("Payment online PayPal")}
+              />
+              <label htmlFor="paymentPayPal">Thanh toán online PayPal</label>
+              <br />
+              <input
+                type="radio"
+                id="paymentVNPay"
+                name="paymentMethod"
+                checked={paymentMethod === "Payment online VNPay"}
+                onClick={(e) => setPaymentMethod("Payment online VNPay")}
+              />
+              <label htmlFor="paymentVNPay">Thanh toán online VNPay</label>
+              <br />
+            </div>
             <div>
               <div className="order-total">
                 <div>
@@ -608,15 +579,70 @@ function CheckOut() {
               </div>
               <div>
                 <div className="text-end py-4">
-                  <button
-                    type="submit"
-                    onClick={handleOrder}
-                    className="btn bg-secondary text-white from-control"
-                    style={{ width: "100%", maxWidth: " 200px" }}
-                  >
-                    <strong>Đặt hàng</strong>
-                  </button>
+                  {paymentMethod === "Cash on Delivery" && (
+                    <button
+                      type="submit"
+                      onClick={handleOrder}
+                      className="btn bg-secondary text-white from-control"
+                      style={{ width: "100%", maxWidth: " 200px" }}
+                    >
+                      <strong>Đặt hàng</strong>
+                    </button>
+                  )}
+                  {paymentMethod === "Payment online VNPay" && (
+                    <button
+                      onClick={handleOrderVNPay}
+                      className="btn"
+                      style={{ border: "none" }}
+                    >
+                      <img
+                        src={require("../assets/image/logoVNPay.png")}
+                        style={{ width: "120px", height: "60px" }}
+                        className="img-fluid"
+                        alt="VNPay"
+                      />
+                    </button>
+                  )}
                 </div>
+                {paymentMethod === "Payment online PayPal" && (
+                  <div>
+                    <PayPalButtons
+                      style={{ color: "silver" }}
+                      onClick={(data, actions) => {
+                        if (statusCheckOut.current) {
+                          return actions.resolve();
+                        } else {
+                          alert("Hãy nhập đầy đủ thông tin vận chuyển");
+                          return actions.reject();
+                        }
+                      }}
+                      createOrder={(data, actions) => {
+                        return actions.order.create({
+                          purchase_units: [
+                            {
+                              description: `Thanh toán đơn hàng của email: ${email}`,
+                              amount: {
+                                // currency_code:"VND",
+                                // value: 10.0,
+                                value: amount.current,
+                              },
+                            },
+                          ],
+                        });
+                      }}
+                      onApprove={async (data, actions) => {
+                        const order = await actions.order.capture();
+                        console.log("order", order);
+                        handleApproveRef.current(data.orderID);
+                      }}
+                      onCancel={() => {}}
+                      onError={(error) => {
+                        console.error("Thanh toán đã xảy ra lỗi: ", error);
+                        alert("Thanh toán đã xảy ra lỗi: ", error);
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>

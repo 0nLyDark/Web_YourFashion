@@ -272,15 +272,30 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductResponse searchProductByKeyword(String keyword, Long categoryId, Integer pageNumber, Integer pageSize,
             String sortBy, String sortOrder, Boolean sale) {
+        if (sortBy.equalsIgnoreCase("specialPrice")) {
+            sortBy = "special_price";
+        } else if (sortBy.equalsIgnoreCase("productName")) {
+            sortBy = "product_name";
+        } else if (sortBy.equalsIgnoreCase("productId") || sortBy.equalsIgnoreCase("Id")) {
+            sortBy = "product_id";
+        } else if (sortBy.equalsIgnoreCase("createdAt")) {
+            sortBy = "created_at";
+        }
         Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
 
         Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
         Page<Product> pageProducts;
+        String[] keywords = keyword.trim().split(" ");
+        for (int i = 0; i < keywords.length; i++) {
+            keywords[i] = keywords[i].trim().toLowerCase();
+        }
+        keyword = String.join("|", keywords);
+
         if (sale) {
-            pageProducts = productRepo.findByDiscountNotAndProductNameLike(0, "%" + keyword + "%", pageDetails);
+            pageProducts = productRepo.findByNotDiscountAndProductNameRegexp(keyword, pageDetails);
         } else {
-            pageProducts = productRepo.findByProductNameLike("%" + keyword + "%", pageDetails);
+            pageProducts = productRepo.findByProductNameRegexp(keyword, pageDetails);
         }
 
         List<Product> products = pageProducts.getContent();
@@ -303,12 +318,6 @@ public class ProductServiceImpl implements ProductService {
                     })
                     .collect(Collectors.toList());
         }
-
-        // if (products.isEmpty()) {
-        // System.out.println("Filtered products count: " + products.size()); //
-        // Debugging line
-        // throw new APIException("Products not found with keyword: " + keyword + " and
-        // categoryId: " + categoryId);
 
         List<ProductDTO> productDTOs = products.stream()
                 .map(p -> modelMapper.map(p, ProductDTO.class))

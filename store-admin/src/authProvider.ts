@@ -63,6 +63,7 @@ export const authProvider = {
     if (status === 401 || status === 403) {
       localStorage.removeItem("jwt-token");
       localStorage.removeItem("username");
+      localStorage.removeItem("storeId");
       return Promise.reject();
     }
     return Promise.resolve();

@@ -120,7 +120,11 @@ export const StoreInfo = () => {
         setMobileNumber(response.data.mobileNumberStore);
         setLogo(response.data.logo);
         setCreatedAt(response.data.createdAt);
+        setCity(response.data.address.city);
+        setDistrict(response.data.address.district);
+        setWard(response.data.address.ward);
         setBuildingName(response.data.address.buildingName);
+
         citys.forEach((ct) => {
           if (ct.full_name == response.data.address.city) {
             setCodeCity(ct.id);
@@ -341,6 +345,9 @@ export const StoreInfo = () => {
                     onChange={(e) => setBuildingName(e.target.value)}
                     type="text"
                   />
+                </td>
+                <td colSpan={2}>
+                  {ward} / {district} / {city}
                 </td>
               </tr>
             </tbody>

@@ -18,7 +18,6 @@ function FilterProduct() {
       .then((response) => {
         // Assuming the response structure has the data inside 'data'
         setCategories(response.content); // Update the state with the fetched data
-        console.log("response", response.content);
       })
       .catch((error) => {
         console.error("Failed to fetch categories:", error); // Handle any errors
